@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WW4">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#c0392b">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<title>WW4 — Multiplayer</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --usa-bg:#0a1628;--usa-mid:#1a2e50;--usa-acc:#c8102e;--usa-txt:#e8dfc8;
+  --cn-bg:#1a0a08;--cn-mid:#3a1210;--cn-acc:#de2910;--cn-txt:#ffd700;
+  --ru-bg:#0d0d18;--ru-mid:#1a1a30;--ru-acc:#0039a6;--ru-txt:#e8e0d0;
+  --ir-bg:#0a1a0a;--ir-mid:#163016;--ir-acc:#239f40;--ir-txt:#da0000;
+  --il-bg:#0a0e1a;--il-mid:#101828;--il-acc:#0038b8;--il-txt:#ffffff;
+  --tw-bg:#1a0808;--tw-mid:#2e1010;--tw-acc:#fe0000;--tw-txt:#000095;
+  --wood:#321808;--wood2:#5a3010;--wood3:#1e0e02;
+  --gold:#c8a84b;--gdim:#7a5820;
+  --red:#c0392b;--cream:#ede6d5;
+  --alpha:#3d9be0;--bravo:#e03d3d;
+  --muted:rgba(255,255,255,.28);
+}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
+  background:#0a1208;height:100vh;height:100dvh;display:flex;flex-direction:column;}
+.screen{display:none;flex-direction:column;flex:1;overflow:hidden;}
+.screen.active{display:flex;}
+
+/* ══════ SETUP / LOBBY SHARED BG ══════ */
+.lobby-bg{align-items:center;justify-content:flex-start;padding:20px 16px;gap:0;overflow-y:auto;
+  background:radial-gradient(ellipse at 50% 30%,rgba(192,57,43,.28) 0%,transparent 60%),
+             radial-gradient(ellipse at 50% 50%,#162018 0%,#080e08 100%);}
+
+/* Logo */
+.s-logo{font-family:'Bebas Neue',sans-serif;font-size:clamp(52px,16vw,80px);
+  letter-spacing:.18em;color:var(--cream);text-shadow:4px 4px 0 var(--red),0 0 40px rgba(192,57,43,.5);
+  line-height:1;text-align:center;margin-bottom:4px;}
+.s-sub{font-weight:700;font-size:10px;letter-spacing:.4em;color:var(--muted);
+  text-transform:uppercase;text-align:center;margin-bottom:20px;}
+
+.s-box{width:100%;max-width:380px;background:rgba(0,0,0,.32);
+  border:1px solid rgba(255,255,255,.1);border-top:2px solid var(--gdim);padding:16px;margin-bottom:10px;}
+.s-lbl{font-weight:700;font-size:10px;letter-spacing:.3em;color:var(--muted);
+  text-transform:uppercase;margin-bottom:8px;}
+.s-input{width:100%;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.14);
+  color:var(--cream);font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:600;
+  padding:11px 14px;outline:none;transition:border-color .2s;border-radius:0;-webkit-appearance:none;}
+.s-input:focus{border-color:var(--gold);}
+.s-input::placeholder{color:rgba(255,255,255,.2);}
+.s-input.code{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.3em;text-transform:uppercase;text-align:center;}
+
+.s-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:380px;margin-bottom:10px;}
+.s-btn{background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.1);
+  color:rgba(255,255,255,.5);font-family:'Bebas Neue',sans-serif;font-size:18px;
+  letter-spacing:.1em;padding:14px 10px;cursor:pointer;text-align:center;transition:all .18s;}
+.s-btn:active{opacity:.75;}
+.s-btn.primary{background:var(--red);border-color:var(--red);color:var(--cream);
+  clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);}
+.s-btn.full{grid-column:1/-1;}
+.s-btn.gold{background:rgba(200,168,75,.12);border-color:var(--gdim);color:var(--gold);}
+
+.s-err{font-weight:700;font-size:10px;letter-spacing:.15em;color:var(--red);
+  text-transform:uppercase;text-align:center;min-height:14px;margin-top:4px;}
+
+/* ══════ LOBBY ══════ */
+#lobby{overflow-y:auto;}
+.lobby-header{display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;background:rgba(0,0,0,.4);border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;}
+.lobby-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.2em;}
+.lobby-code{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:.3em;
+  color:var(--gold);text-shadow:0 0 12px rgba(200,168,75,.4);}
+.lobby-code-lbl{font-weight:700;font-size:8px;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;}
+
+.lobby-body{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;}
+
+.team-block{background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.08);border-radius:4px;overflow:hidden;}
+.team-hdr{display:flex;align-items:center;justify-content:space-between;
+  padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.06);}
+.team-name{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:.18em;}
+.team-name.a{color:var(--alpha);}.team-name.b{color:var(--bravo);}
+.team-join{background:none;border:1px solid currentColor;font-family:'Bebas Neue',sans-serif;
+  font-size:12px;letter-spacing:.14em;padding:4px 12px;cursor:pointer;transition:all .15s;border-radius:2px;}
+.team-join.a{color:var(--alpha);}.team-join.b{color:var(--bravo);}
+.team-join:active{opacity:.7;}
+.team-join:disabled{opacity:.25;cursor:not-allowed;}
+
+.team-players{padding:8px 12px;display:flex;flex-direction:column;gap:6px;min-height:44px;}
+.team-player{display:flex;align-items:center;gap:8px;}
+.tp-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.2);flex-shrink:0;}
+.tp-dot.ready{background:#4caf50;}
+.tp-name{font-weight:700;font-size:14px;letter-spacing:.06em;}
+.tp-name.me{color:var(--gold);}
+.tp-host{font-size:9px;letter-spacing:.12em;color:var(--muted);margin-left:4px;}
+.tp-empty{font-weight:400;font-size:11px;color:rgba(255,255,255,.2);font-style:italic;}
+
+.lobby-status{font-weight:700;font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--muted);text-align:center;padding:4px 0;}
+.lobby-status.ok{color:#4caf50;}
+.lobby-status.warn{color:#ff9800;}
+
+.lobby-footer{padding:10px 14px 16px;display:flex;flex-direction:column;gap:8px;
+  border-top:1px solid rgba(255,255,255,.06);flex-shrink:0;}
+
+/* Mode selector in lobby */
+.mode-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.mode-opt{background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.1);
+  color:rgba(255,255,255,.35);font-family:'Bebas Neue',sans-serif;font-size:17px;
+  letter-spacing:.1em;padding:11px 8px;cursor:pointer;text-align:center;transition:all .18s;border-radius:2px;}
+.mode-opt.on{border-color:var(--gold);color:var(--cream);background:rgba(200,168,75,.08);}
+.mode-sub{font-family:'Barlow Condensed',sans-serif;font-weight:400;font-size:9px;
+  letter-spacing:.06em;color:rgba(255,255,255,.25);margin-top:2px;}
+.mode-opt.on .mode-sub{color:var(--gdim);}
+
+/* ══════ GAME ══════ */
+#game{position:relative;overflow:hidden;}
+.rail{background:linear-gradient(180deg,var(--wood2) 0%,var(--wood) 55%,var(--wood3) 100%);
+  border-bottom:3px solid rgba(0,0,0,.7);padding:7px 14px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;box-shadow:0 3px 16px rgba(0,0,0,.6);position:relative;z-index:5;}
+.rail::before{content:'';position:absolute;inset:0 0 3px 0;
+  background:linear-gradient(180deg,rgba(255,255,255,.07) 0%,transparent 100%);pointer-events:none;}
+.rail-team{display:flex;flex-direction:column;align-items:center;min-width:62px;}
+.rail-tag{font-weight:700;font-size:9px;letter-spacing:.22em;text-transform:uppercase;opacity:.55;}
+.rail-tag.a{color:var(--alpha);}.rail-tag.b{color:var(--bravo);}
+.rail-score{font-family:'Bebas Neue',sans-serif;font-size:32px;line-height:1;}
+.rail-score.a{color:var(--alpha);}.rail-score.b{color:var(--bravo);}
+.rail-mid{display:flex;flex-direction:column;align-items:center;}
+.rail-logo{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.16em;
+  color:var(--cream);text-shadow:2px 2px 0 var(--red);}
+.rail-rnd{font-weight:700;font-size:9px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase;}
+
+.action-rail{background:linear-gradient(0deg,var(--wood2) 0%,var(--wood) 55%,var(--wood3) 100%);
+  border-top:3px solid rgba(0,0,0,.7);padding:10px 14px 14px;
+  display:flex;flex-direction:column;gap:5px;flex-shrink:0;
+  box-shadow:0 -3px 16px rgba(0,0,0,.5);position:relative;z-index:5;}
+.action-rail::before{content:'';position:absolute;inset:3px 0 0 0;
+  background:linear-gradient(0deg,rgba(255,255,255,.04) 0%,transparent 100%);pointer-events:none;}
+.flip-btn{width:100%;background:var(--red);color:var(--cream);border:none;
+  font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.2em;padding:15px;
+  cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);
+  transition:all .14s;position:relative;z-index:1;}
+.flip-btn:active{opacity:.8;transform:scale(.98);}
+.flip-btn:disabled{background:rgba(255,255,255,.08);color:rgba(255,255,255,.22);clip-path:none;cursor:not-allowed;}
+.flip-btn.war{background:linear-gradient(90deg,#7a0000,#c0392b,#7a0000);
+  background-size:200%;animation:warscroll 1.1s linear infinite;}
+@keyframes warscroll{0%{background-position:0%}100%{background-position:200%}}
+.status{font-weight:700;font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--muted);text-align:center;position:relative;z-index:1;}
+.status.hot{color:#ff7755;}
+
+.ante-strip{background:rgba(100,0,0,.28);border-bottom:1px solid rgba(192,57,43,.3);
+  padding:5px 12px;display:none;flex-shrink:0;position:relative;z-index:4;}
+.ante-strip.on{display:block;}
+.ante-lbl{font-weight:700;font-size:9px;letter-spacing:.25em;color:var(--red);
+  text-transform:uppercase;margin-bottom:4px;}
+.ante-rows{display:flex;flex-direction:column;gap:3px;}
+.ante-row{display:flex;align-items:center;gap:6px;}
+.ante-pname{font-weight:700;font-size:9px;letter-spacing:.1em;text-transform:uppercase;width:34px;flex-shrink:0;}
+.ante-cards-row{display:flex;gap:2px;}
+
+/* ══════ TABLE ══════ */
+.table-wrap{flex:1;position:relative;overflow:hidden;display:flex;}
+.table{flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column;background:#14321a;}
+.tflag-tl{position:absolute;top:0;left:0;width:58%;height:54%;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse at 0% 0%,rgba(10,22,40,.85) 0%,rgba(200,16,46,.25) 40%,transparent 70%);}
+.tflag-tr{position:absolute;top:0;right:0;width:58%;height:54%;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse at 100% 0%,rgba(26,10,8,.8) 0%,rgba(222,41,16,.4) 30%,rgba(255,215,0,.15) 55%,transparent 70%);}
+.tflag-bl{position:absolute;bottom:0;left:0;width:58%;height:54%;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse at 0% 100%,rgba(10,14,26,.85) 0%,rgba(0,56,184,.35) 35%,transparent 68%);}
+.tflag-br{position:absolute;bottom:0;right:0;width:58%;height:54%;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse at 100% 100%,rgba(10,26,10,.8) 0%,rgba(35,159,64,.4) 30%,rgba(218,0,0,.2) 58%,transparent 70%);}
+.t-grain{position:absolute;inset:0;pointer-events:none;z-index:1;
+  background-image:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.016) 2px,rgba(0,0,0,.016) 3px),
+    repeating-linear-gradient(90deg,transparent,transparent 2px,rgba(0,0,0,.016) 2px,rgba(0,0,0,.016) 3px);}
+.t-oval{position:absolute;inset:12px 8px;border:2px solid rgba(255,255,255,.05);border-radius:50%;pointer-events:none;z-index:1;}
+.t-vig{position:absolute;inset:0;pointer-events:none;z-index:1;
+  background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,.12) 0%,transparent 65%);}
+
+.table-inner{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;padding:6px 10px;}
+.zone-opp{display:flex;justify-content:center;align-items:center;gap:12px;flex-shrink:0;padding-bottom:4px;}
+.zone-center{display:flex;flex-direction:column;align-items:center;flex:1;justify-content:center;gap:4px;}
+.zone-player{display:flex;justify-content:center;align-items:center;gap:12px;flex-shrink:0;padding-top:4px;}
+
+.pspot{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.pspot-info{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.pspot-name{font-weight:700;font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.6);}
+.pspot-name.me{color:var(--gold);}
+.pspot-ct{font-family:'Bebas Neue',sans-serif;font-size:16px;color:rgba(255,255,255,.32);line-height:1;}
+
+.ctr-logo{font-family:'Bebas Neue',sans-serif;font-size:clamp(18px,5vw,30px);
+  letter-spacing:.25em;color:rgba(255,255,255,.09);pointer-events:none;user-select:none;line-height:1;}
+.ctr-sub{font-weight:700;font-size:8px;letter-spacing:.3em;text-transform:uppercase;
+  color:rgba(255,255,255,.09);pointer-events:none;user-select:none;}
+.pot-pill{background:rgba(0,0,0,.38);border:1px solid rgba(200,168,75,.32);border-radius:20px;
+  padding:3px 12px;font-weight:700;font-size:9px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--gold);opacity:0;transition:opacity .28s;}
+.pot-pill.show{opacity:1;}
+
+/* ══════ RESULT ══════ */
+.table-result{display:none;flex-direction:column;align-items:center;gap:2px;
+  background:rgba(8,6,2,.78);border:1px solid rgba(255,255,255,.1);border-radius:6px;
+  padding:8px 20px 10px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  animation:trIn .22s ease;width:100%;}
+.table-result.show{display:flex;}
+@keyframes trIn{from{opacity:0;transform:scaleY(.8);}to{opacity:1;transform:scaleY(1);}}
+.tr-outcome{font-family:'Bebas Neue',sans-serif;font-size:clamp(48px,14vw,72px);
+  letter-spacing:.14em;line-height:1;text-align:center;}
+.tr-outcome.win{color:var(--gold);text-shadow:0 0 20px rgba(200,168,75,.7);}
+.tr-outcome.lose{color:var(--red);text-shadow:0 0 20px rgba(192,57,43,.65);}
+.tr-outcome.war{color:#ff7755;text-shadow:0 0 20px rgba(255,120,80,.65);}
+.tr-team{font-family:'Bebas Neue',sans-serif;font-size:clamp(13px,3.5vw,18px);
+  letter-spacing:.25em;line-height:1;text-align:center;margin-bottom:2px;}
+.tr-team.a{color:var(--alpha);}.tr-team.b{color:var(--bravo);}.tr-team.none{display:none;}
+.tr-sub{font-weight:700;font-size:8px;letter-spacing:.12em;text-transform:uppercase;
+  color:rgba(255,255,255,.28);text-align:center;line-height:1.4;}
+.tr-btn{background:var(--red);color:var(--cream);border:none;
+  font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:.18em;
+  padding:8px 22px;cursor:pointer;margin-top:4px;
+  clip-path:polygon(4px 0%,100% 0%,calc(100% - 4px) 100%,0% 100%);transition:all .13s;}
+.tr-btn:active{opacity:.8;}
+.tr-btn:disabled{opacity:.35;cursor:not-allowed;}
+.zone-center.result-active #ctr-logo,
+.zone-center.result-active #ctr-sub,
+.zone-center.result-active #pot-pill{display:none !important;}
+
+/* ══════ CARDS ══════ */
+.card{border-radius:5px;overflow:hidden;flex-shrink:0;box-shadow:0 3px 12px rgba(0,0,0,.65);position:relative;}
+.xl{width:82px;height:114px;border-radius:6px;}
+.lg{width:66px;height:92px;}
+.md{width:52px;height:72px;border-radius:4px;}
+.sm{width:44px;height:61px;border-radius:3px;}
+.xs{width:27px;height:38px;border-radius:2px;}
+.xl .cf-rank{font-size:54px;}.xl .cf-word{font-size:16px;}.xl .cf-nation{font-size:12px;}
+.xl .cff{font-size:14px;}.xl .cb-exp{font-size:22px;}.xl .cb-ww4{font-size:10px;}
+
+.card.back{background:linear-gradient(145deg,#1e1a14,#2c2218);border:2px solid #4a3820;}
+.cb-inner{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 40%,rgba(192,57,43,.12) 0%,transparent 65%);}
+.cb-ww4{font-family:'Bebas Neue',sans-serif;font-size:9px;letter-spacing:.2em;
+  color:var(--cream);text-align:center;line-height:1.15;text-shadow:1px 1px 0 var(--red);}
+.cb-exp{font-size:16px;line-height:1;margin-bottom:2px;}
+.cb-sub{font-size:5px;letter-spacing:.1em;color:rgba(255,255,255,.3);margin-top:2px;font-weight:700;}
+.sm .cb-exp{font-size:11px;}.sm .cb-ww4{font-size:7px;}
+.xs .cb-exp{font-size:7px;}.xs .cb-ww4{display:none;}.xs .cb-sub{display:none;}
+
+.card.face{display:flex;flex-direction:column;position:relative;overflow:hidden;border:none;}
+.card.face.usa{background:linear-gradient(160deg,#0a1628 0%,#1a2e50 55%,#0f1e38 100%);border:2px solid #c8102e;}
+.card.face.cn {background:linear-gradient(160deg,#1a0a08 0%,#3a1210 55%,#220e0a 100%);border:2px solid #de2910;}
+.card.face.ru {background:linear-gradient(160deg,#0d0d18 0%,#1a1a30 55%,#100f20 100%);border:2px solid #0039a6;}
+.card.face.ir {background:linear-gradient(160deg,#0a1a0a 0%,#163016 55%,#0c1e0c 100%);border:2px solid #239f40;}
+.card.face.il {background:linear-gradient(160deg,#0a0e1a 0%,#101828 55%,#0c1220 100%);border:2px solid #0038b8;}
+.card.face.tw {background:linear-gradient(160deg,#1a0808 0%,#2e1010 55%,#1e0c0c 100%);border:2px solid #fe0000;}
+.card.face.usa::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(35deg,transparent,transparent 8px,rgba(200,16,46,.06) 8px,rgba(200,16,46,.06) 9px);}
+.card.face.cn::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(35deg,transparent,transparent 8px,rgba(255,215,0,.06) 8px,rgba(255,215,0,.06) 9px);}
+.card.face.ru::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(35deg,transparent,transparent 8px,rgba(0,57,166,.08) 8px,rgba(0,57,166,.08) 9px);}
+.card.face.ir::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(35deg,transparent,transparent 8px,rgba(35,159,64,.08) 8px,rgba(35,159,64,.08) 9px);}
+.card.face.il::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(35deg,transparent,transparent 8px,rgba(0,56,184,.08) 8px,rgba(0,56,184,.08) 9px);}
+.card.face.tw::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(35deg,transparent,transparent 8px,rgba(254,0,0,.08) 8px,rgba(254,0,0,.08) 9px);}
+
+.cf-inner{position:relative;z-index:1;width:100%;height:100%;
+  display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:4px 3px 3px;}
+.cf-nation{font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:.12em;width:100%;text-align:left;line-height:1;padding-left:1px;}
+.usa .cf-nation{color:#c8102e;}.cn .cf-nation{color:#ffd700;}.ru .cf-nation{color:#d4af37;}
+.ir .cf-nation{color:#239f40;}.il .cf-nation{color:#4a7cdc;}.tw .cf-nation{color:#fe6060;}
+.cf-rank{font-family:'Bebas Neue',sans-serif;line-height:1;text-align:center;flex:1;display:flex;align-items:center;justify-content:center;}
+.lg .cf-rank{font-size:46px;}.md .cf-rank{font-size:36px;}.sm .cf-rank{font-size:28px;}.xs .cf-rank{font-size:18px;}
+.usa .cf-rank{color:#e8dfc8;text-shadow:0 0 12px rgba(200,16,46,.4);}
+.cn  .cf-rank{color:#ffd700;text-shadow:0 0 12px rgba(222,41,16,.5);}
+.ru  .cf-rank{color:#c8d4e8;text-shadow:0 0 12px rgba(0,57,166,.5);}
+.ir  .cf-rank{color:#a8e8a8;text-shadow:0 0 12px rgba(35,159,64,.4);}
+.il  .cf-rank{color:#d0dcff;text-shadow:0 0 12px rgba(0,56,184,.4);}
+.tw  .cf-rank{color:#ffcccc;text-shadow:0 0 12px rgba(254,0,0,.4);}
+.cf-word{font-family:'Bebas Neue',sans-serif;letter-spacing:.06em;width:100%;text-align:center;line-height:1;}
+.lg .cf-word{font-size:11px;}.md .cf-word{font-size:9px;}.sm .cf-word{font-size:7px;}.xs .cf-word{display:none;}
+.xs .cf-nation{font-size:7px;}
+.usa .cf-word{color:rgba(200,16,46,.75);}.cn .cf-word{color:rgba(255,215,0,.75);}
+.ru .cf-word{color:rgba(100,140,220,.75);}.ir .cf-word{color:rgba(35,159,64,.75);}
+.il .cf-word{color:rgba(74,124,220,.75);}.tw .cf-word{color:rgba(254,96,96,.75);}
+.cf-line{width:70%;height:1.5px;border-radius:1px;margin:1px auto;}
+.usa .cf-line{background:rgba(200,16,46,.4);}.cn .cf-line{background:rgba(255,215,0,.4);}
+.ru .cf-line{background:rgba(0,57,166,.5);}.ir .cf-line{background:rgba(35,159,64,.4);}
+.il .cf-line{background:rgba(0,56,184,.4);}.tw .cf-line{background:rgba(254,0,0,.4);}
+.sm .cf-line{display:none;}.xs .cf-line{display:none;}
+
+.card.face.joker{background:linear-gradient(145deg,#18080a,#2a1018);border:2px solid #8b0000;}
+.joker .cf-rank{color:#ff6644;font-size:18px;flex-direction:column;gap:2px;}
+.sm .joker .cf-rank{font-size:13px;}.xs .joker .cf-rank{font-size:9px;}
+.joker .cf-nation{color:#ff6644;font-size:10px;}.joker .cf-word{color:rgba(255,102,68,.6);font-size:9px;}
+
+.card.ante{background:rgba(100,0,0,.28);border:2px dashed rgba(192,57,43,.38);
+  display:flex;align-items:center;justify-content:center;font-size:13px;color:rgba(192,57,43,.45);}
+.xs.ante{font-size:8px;}
+.card.empty{background:transparent;border:2px dashed rgba(255,255,255,.07);box-shadow:none;}
+.ring-win{box-shadow:0 0 0 3px var(--gold),0 0 16px rgba(200,168,75,.6)!important;transform:scale(1.05);}
+.ring-lose{opacity:.3;}
+.flip-in{animation:fi .35s ease;}
+@keyframes fi{0%{transform:rotateY(80deg) scale(.88);opacity:0;}100%{transform:rotateY(0);opacity:1;}}
+
+/* ══════ EXPLOSION ══════ */
+.ww4-blast{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  pointer-events:none;z-index:50;opacity:0;}
+.ww4-blast.boom{animation:blastIn .12s ease forwards;}
+.ww4-blast.fade{animation:blastOut .6s ease forwards;}
+@keyframes blastIn{0%{opacity:0;}100%{opacity:1;}}
+@keyframes blastOut{0%{opacity:1;}100%{opacity:0;}}
+.blast-ring{position:absolute;border-radius:50%;border:3px solid rgba(255,120,40,.7);top:50%;left:50%;transform:translate(-50%,-50%) scale(0);opacity:0;}
+.ww4-blast.boom .blast-ring{animation:ringOut 1.1s ease-out forwards;}
+.r1{width:80px;height:80px;animation-delay:.0s!important;border-color:rgba(255,200,40,.9);}
+.r2{width:160px;height:160px;animation-delay:.08s!important;border-color:rgba(255,100,30,.7);}
+.r3{width:260px;height:260px;animation-delay:.16s!important;border-color:rgba(192,57,43,.5);}
+@keyframes ringOut{0%{transform:translate(-50%,-50%) scale(0);opacity:1;}100%{transform:translate(-50%,-50%) scale(1);opacity:0;}}
+.ww4-blast.boom::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 50%,rgba(255,180,40,.55) 0%,rgba(192,57,43,.35) 40%,transparent 70%);
+  animation:flashOut .5s ease forwards;}
+@keyframes flashOut{0%{opacity:1;}100%{opacity:0;}}
+.blast-center{font-size:80px;line-height:1;position:relative;z-index:2;
+  animation:boomPop .4s cubic-bezier(.2,1.6,.4,1) forwards;transform:scale(0);
+  filter:drop-shadow(0 0 20px rgba(255,150,0,.8));}
+@keyframes boomPop{0%{transform:scale(0) rotate(-15deg);opacity:0;}60%{transform:scale(1.3) rotate(5deg);opacity:1;}100%{transform:scale(1) rotate(0deg);opacity:1;}}
+.blast-text{font-family:'Bebas Neue',sans-serif;font-size:clamp(32px,10vw,52px);letter-spacing:.22em;
+  color:#ff7755;text-shadow:0 0 30px rgba(255,100,40,.8),3px 3px 0 rgba(0,0,0,.6);
+  position:relative;z-index:2;margin-top:8px;transform:scale(0);
+  animation:textSlam .35s cubic-bezier(.15,1.4,.4,1) .2s forwards;}
+@keyframes textSlam{0%{transform:scale(2.5);opacity:0;}100%{transform:scale(1);opacity:1;}}
+.blast-particles{position:absolute;inset:0;pointer-events:none;}
+.spark{position:absolute;width:4px;height:4px;border-radius:50%;background:var(--c,#ffdd00);top:50%;left:50%;
+  animation:sparkFly var(--d,.8s) ease-out var(--delay,0s) forwards;}
+@keyframes sparkFly{0%{transform:translate(-50%,-50%) translate(0,0) scale(1);opacity:1;}100%{transform:translate(-50%,-50%) translate(var(--tx,0px),var(--ty,0px)) scale(0);opacity:0;}}
+
+/* ══════ WAITING OVERLAY ══════ */
+.waiting-overlay{display:none;position:absolute;inset:0;z-index:30;
+  background:rgba(0,0,0,.72);backdrop-filter:blur(4px);
+  align-items:center;justify-content:center;flex-direction:column;gap:10px;}
+.waiting-overlay.show{display:flex;}
+.waiting-spinner{width:36px;height:36px;border:3px solid rgba(255,255,255,.1);
+  border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.waiting-txt{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:.2em;color:var(--muted);}
+
+/* ══════ CONNECTING ══════ */
+#connecting{align-items:center;justify-content:center;gap:14px;
+  background:radial-gradient(ellipse at 50% 50%,#162018 0%,#080e08 100%);}
+.conn-logo{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:.18em;
+  color:var(--cream);text-shadow:3px 3px 0 var(--red);}
+.conn-txt{font-weight:700;font-size:11px;letter-spacing:.3em;color:var(--muted);text-transform:uppercase;}
+.conn-spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.08);
+  border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite;}
+
+/* ══════ GAME OVER ══════ */
+#gameover{align-items:center;justify-content:center;gap:12px;
+  background:radial-gradient(ellipse at 50% 30%,rgba(192,57,43,.3) 0%,transparent 60%),
+             radial-gradient(ellipse at 50% 50%,#162018 0%,#080e08 100%);}
+.go-result{font-family:'Bebas Neue',sans-serif;font-size:clamp(52px,16vw,80px);
+  letter-spacing:.15em;line-height:1;text-align:center;}
+.go-result.win{color:var(--gold);text-shadow:0 0 40px rgba(200,168,75,.6);}
+.go-result.lose{color:var(--red);text-shadow:0 0 40px rgba(192,57,43,.6);}
+.go-team{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.28em;}
+.go-team.a{color:var(--alpha);}.go-team.b{color:var(--bravo);}
+.go-sub{font-weight:700;font-size:10px;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;}
+@keyframes svgglow{
+  0%,100%{filter:drop-shadow(0 4px 24px rgba(192,57,43,.45));}
+  50%{filter:drop-shadow(0 4px 36px rgba(192,57,43,.75)) drop-shadow(0 0 60px rgba(192,57,43,.3));}
+}
+</style>
+</head>
+<body>
+
+<!-- CONNECTING -->
+<div id="connecting" class="screen active">
+  <div class="conn-logo">WW4</div>
+  <div class="conn-spinner"></div>
+  <div class="conn-txt">Connecting...</div>
+</div>
+
+<!-- SETUP -->
+<div id="setup" class="screen lobby-bg">
+  <img src="ww4-logo.png" alt="World War 4" style="width:min(260px,75vw);height:auto;border-radius:10px;margin-bottom:8px;filter:drop-shadow(0 4px 24px rgba(192,57,43,.55));animation:svgglow 3s ease-in-out infinite;">
+  <div class="s-sub">Multiplayer</div>
+  <div class="s-box">
+    <div class="s-lbl">Your Call Sign</div>
+    <input class="s-input" id="inp-name" type="text" placeholder="Enter your name" maxlength="14" autocomplete="off" autocorrect="off" spellcheck="false">
+  </div>
+  <div class="s-btns">
+    <button class="s-btn primary" onclick="doCreateRoom()">⚔ CREATE GAME</button>
+    <button class="s-btn gold" onclick="showJoin()">JOIN GAME</button>
+  </div>
+  <div id="join-box" class="s-box" style="display:none;">
+    <div class="s-lbl">Room Code</div>
+    <input class="s-input code" id="inp-code" type="text" placeholder="WXYZ" maxlength="4" autocomplete="off" autocorrect="off" spellcheck="false">
+    <div style="margin-top:8px;">
+      <button class="s-btn primary full" style="width:100%;" onclick="doJoinRoom()">→ JOIN</button>
+    </div>
+  </div>
+  <div class="s-err" id="setup-err"></div>
+</div>
+
+<!-- LOBBY -->
+<div id="lobby" class="screen">
+  <div class="lobby-header">
+    <div>
+      <div style="font-weight:700;font-size:9px;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;">Room Code</div>
+      <div class="lobby-code" id="lob-code">----</div>
+    </div>
+    <div style="text-align:right;">
+      <div class="lobby-title">WW4</div>
+      <button onclick="copyRoomLink()" style="background:none;border:1px solid rgba(255,255,255,.15);color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.1em;padding:3px 10px;cursor:pointer;border-radius:2px;">📋 COPY LINK</button>
+    </div>
+  </div>
+
+  <div class="lobby-body">
+    <div style="font-weight:700;font-size:9px;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Game Mode</div>
+    <div class="mode-row" id="mode-row">
+      <div class="mode-opt on" id="opt-2v2" onclick="hostSetMode('2v2')">2v2<div class="mode-sub">2 vs 2 · 2 decks</div></div>
+      <div class="mode-opt"    id="opt-3v3" onclick="hostSetMode('3v3')">3v3<div class="mode-sub">3 vs 3 · 3 decks</div></div>
+    </div>
+
+    <div class="team-block">
+      <div class="team-hdr">
+        <div class="team-name a">⚔ ALPHA</div>
+        <button class="team-join a" id="btn-join-a" onclick="joinTeam('a')">JOIN</button>
+      </div>
+      <div class="team-players" id="team-a-players"></div>
+    </div>
+
+    <div class="team-block">
+      <div class="team-hdr">
+        <div class="team-name b">🔥 BRAVO</div>
+        <button class="team-join b" id="btn-join-b" onclick="joinTeam('b')">JOIN</button>
+      </div>
+      <div class="team-players" id="team-b-players"></div>
+    </div>
+
+    <div class="lobby-status" id="lob-status">Waiting for players...</div>
+  </div>
+
+  <div class="lobby-footer">
+    <button class="s-btn primary" id="btn-deploy" onclick="doStartGame()" disabled>⚔ DEPLOY</button>
+    <button class="s-btn" onclick="leaveRoom()">← LEAVE</button>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="game" class="screen">
+  <div class="rail">
+    <div class="rail-team"><div class="rail-tag a">Alpha</div><div class="rail-score a" id="sc-a">0</div></div>
+    <div class="rail-mid"><div class="rail-logo">WW4</div><div class="rail-rnd" id="rnd-lbl">Round 1</div></div>
+    <div class="rail-team"><div class="rail-tag b">Bravo</div><div class="rail-score b" id="sc-b">0</div></div>
+  </div>
+  <div class="ante-strip" id="ante-strip">
+    <div class="ante-lbl" id="ante-lbl">⚡ World War 4</div>
+    <div class="ante-rows" id="ante-rows"></div>
+  </div>
+  <div class="table-wrap">
+    <div class="table">
+      <div class="tflag-tl"></div><div class="tflag-tr"></div>
+      <div class="tflag-bl"></div><div class="tflag-br"></div>
+      <div class="t-grain"></div><div class="t-oval"></div><div class="t-vig"></div>
+      <div class="table-inner">
+        <div class="zone-opp" id="zone-opp"></div>
+        <div class="zone-center" id="zone-center">
+          <div class="ctr-logo" id="ctr-logo">WORLD WAR 4</div>
+          <div class="pot-pill" id="pot-pill">0 in pot</div>
+          <div class="ctr-sub" id="ctr-sub">· · ·</div>
+          <div class="table-result" id="table-result">
+            <div class="tr-outcome" id="tr-outcome">VICTORY</div>
+            <div class="tr-team" id="tr-team"></div>
+            <div class="tr-sub" id="tr-sub"></div>
+            <button class="tr-btn" id="tr-btn">NEXT ROUND →</button>
+          </div>
+        </div>
+        <div class="zone-player" id="zone-player"></div>
+      </div>
+      <div class="ww4-blast" id="ww4-blast">
+        <div class="blast-ring r1"></div>
+        <div class="blast-ring r2"></div>
+        <div class="blast-ring r3"></div>
+        <div class="blast-center">💥</div>
+        <div class="blast-text">WORLD WAR 4</div>
+        <div class="blast-particles" id="blast-particles"></div>
+      </div>
+      <!-- Waiting for other players overlay -->
+      <div class="waiting-overlay" id="waiting-overlay">
+        <div class="waiting-spinner"></div>
+        <div class="waiting-txt" id="waiting-txt">Waiting for players...</div>
+      </div>
+    </div>
+  </div>
+  <div class="action-rail">
+    <button class="flip-btn" id="flip-btn" onclick="onFlip()" disabled>⚔ FLIP CARDS</button>
+    <div class="status" id="status-bar">Waiting for all players...</div>
+  </div>
+</div>
+
+<!-- GAME OVER -->
+<div id="gameover" class="screen">
+  <div class="go-result" id="go-result">CHAMPIONS</div>
+  <div class="go-team" id="go-team">TEAM ALPHA</div>
+  <div class="go-sub">wins the war</div>
+  <div style="margin-top:20px;display:flex;gap:10px;">
+    <button class="s-btn primary" onclick="playAgain()">⚔ REMATCH</button>
+    <button class="s-btn" onclick="leaveRoom()">← LOBBY</button>
+  </div>
+</div>
+
+<script type="module">
+/* ══════════════════════════════════════════
+   FIREBASE
+══════════════════════════════════════════ */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, update, onValue, off, remove, push, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCBi7Jpgr0LFONEECWodvtOg8xb4AkIpmk",
+  authDomain: "world-war-4-b4561.firebaseapp.com",
+  databaseURL: "https://world-war-4-b4561-default-rtdb.firebaseio.com",
+  projectId: "world-war-4-b4561",
+  storageBucket: "world-war-4-b4561.firebasestorage.app",
+  messagingSenderId: "666098435005",
+  appId: "1:666098435005:web:3a845e8f515beac02288d4"
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+/* ══════════════════════════════════════════
+   CONSTANTS
+══════════════════════════════════════════ */
+const NATIONS = [
+  {code:'usa',name:'USA'},{code:'cn',name:'CHINA'},{code:'ru',name:'RUSSIA'},
+  {code:'ir',name:'IRAN'},{code:'il',name:'ISRAEL'},{code:'tw',name:'TAIWAN'}
+];
+const RANKS = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+const VALS  = {2:2,3:3,4:4,5:5,6:6,7:7,8:8,9:9,10:10,J:11,Q:12,K:13,A:14};
+const WORD  = {2:'TWO',3:'THREE',4:'FOUR',5:'FIVE',6:'SIX',7:'SEVEN',8:'EIGHT',
+               9:'NINE',10:'TEN',J:'JACK',Q:'QUEEN',K:'KING',A:'ACE'};
+
+/* ══════════════════════════════════════════
+   LOCAL STATE
+══════════════════════════════════════════ */
+let myId   = null; // unique browser ID
+let myName = '';
+let roomCode = null;
+let roomRef  = null;
+let roomUnsub = null;
+let isHost   = false;
+
+// Local game mirror (updated from Firebase)
+let G = {};
+
+/* ══════════════════════════════════════════
+   INIT
+══════════════════════════════════════════ */
+window.addEventListener('load', ()=>{
+  myId = 'p_' + Math.random().toString(36).slice(2,10);
+  // Check URL for room code
+  const params = new URLSearchParams(location.search);
+  const urlCode = params.get('room');
+  showScreen('setup');
+  if(urlCode){
+    document.getElementById('inp-code').value = urlCode.toUpperCase();
+    showJoin();
+  }
+});
+
+/* ══════════════════════════════════════════
+   UI HELPERS
+══════════════════════════════════════════ */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+window.showJoin = function(){
+  document.getElementById('join-box').style.display='block';
+};
+function setErr(msg){ document.getElementById('setup-err').textContent = msg; }
+
+window.copyRoomLink = function(){
+  const url = location.origin + location.pathname + '?room=' + roomCode;
+  navigator.clipboard.writeText(url).catch(()=>{});
+  const btn = event.target;
+  const orig = btn.textContent;
+  btn.textContent = '✓ COPIED';
+  setTimeout(()=>btn.textContent=orig, 1500);
+};
+
+/* ══════════════════════════════════════════
+   ROOM CREATION
+══════════════════════════════════════════ */
+window.doCreateRoom = async function(){
+  const name = document.getElementById('inp-name').value.trim();
+  if(!name){ setErr('Enter your name first'); return; }
+  myName = name.toUpperCase();
+  setErr('');
+
+  // Generate 4-letter code
+  const code = Array.from({length:4},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.floor(Math.random()*23)]).join('');
+  roomCode = code;
+  isHost = true;
+  roomRef = ref(db, 'rooms/' + code);
+
+  const roomData = {
+    host: myId,
+    mode: '2v2',
+    phase: 'lobby',
+    created: serverTimestamp(),
+    players: {
+      [myId]: { name: myName, team: 'a', ready: false, host: true }
+    }
+  };
+  await set(roomRef, roomData);
+  subscribeRoom();
+  showScreen('lobby');
+  document.getElementById('lob-code').textContent = code;
+};
+
+/* ══════════════════════════════════════════
+   JOINING
+══════════════════════════════════════════ */
+window.doJoinRoom = async function(){
+  const name = document.getElementById('inp-name').value.trim();
+  const code = document.getElementById('inp-code').value.trim().toUpperCase();
+  if(!name){ setErr('Enter your name first'); return; }
+  if(code.length !== 4){ setErr('Enter a 4-letter room code'); return; }
+  myName = name.toUpperCase();
+  setErr('');
+
+  roomCode = code;
+  roomRef = ref(db, 'rooms/' + code);
+  const snap = await get(roomRef);
+  if(!snap.exists()){ setErr('Room not found'); return; }
+  const data = snap.val();
+  if(data.phase !== 'lobby'){ setErr('Game already in progress'); return; }
+
+  isHost = false;
+  // Join unassigned (no team yet)
+  await update(ref(db, `rooms/${code}/players/${myId}`), {
+    name: myName, team: '', ready: false, host: false
+  });
+  subscribeRoom();
+  showScreen('lobby');
+  document.getElementById('lob-code').textContent = code;
+};
+
+/* ══════════════════════════════════════════
+   LOBBY SUBSCRIPTION
+══════════════════════════════════════════ */
+function subscribeRoom(){
+  if(roomUnsub){ off(roomRef); }
+  roomUnsub = onValue(roomRef, snap=>{
+    if(!snap.exists()){ leaveRoom(); return; }
+    const data = snap.val();
+    if(data.phase === 'playing' && document.getElementById('game').className.indexOf('active')===-1){
+      startLocalGame(data);
+      return;
+    }
+    if(data.phase === 'lobby'){
+      renderLobby(data);
+    }
+    if(data.phase === 'playing'){
+      handleGameState(data);
+    }
+  });
+}
+
+/* ══════════════════════════════════════════
+   LOBBY RENDER
+══════════════════════════════════════════ */
+function renderLobby(data){
+  const players = data.players || {};
+  const mode = data.mode || '2v2';
+  const needed = mode === '2v2' ? 2 : 3;
+  const myTeam = players[myId]?.team || '';
+
+  // Mode selector — only host can change
+  ['2v2','3v3'].forEach(m=>{
+    const el = document.getElementById('opt-'+m);
+    el.className = 'mode-opt' + (mode===m?' on':'');
+    if(!isHost) el.onclick = null;
+  });
+  if(!isHost) document.getElementById('mode-row').style.opacity='0.5';
+
+  // Teams
+  ['a','b'].forEach(team=>{
+    const container = document.getElementById(`team-${team}-players`);
+    container.innerHTML = '';
+    const teamPlayers = Object.entries(players).filter(([,p])=>p.team===team);
+    teamPlayers.forEach(([pid,p])=>{
+      const row = document.createElement('div');
+      row.className = 'team-player';
+      const dot = document.createElement('div');
+      dot.className = 'tp-dot ready';
+      const nm = document.createElement('div');
+      nm.className = 'tp-name' + (pid===myId?' me':'');
+      nm.textContent = p.name;
+      const hostBadge = document.createElement('span');
+      if(p.host) hostBadge.className='tp-host', hostBadge.textContent='HOST';
+      row.appendChild(dot); row.appendChild(nm); row.appendChild(hostBadge);
+      container.appendChild(row);
+    });
+    if(teamPlayers.length===0){
+      const empty = document.createElement('div');
+      empty.className='tp-empty';
+      empty.textContent='— empty —';
+      container.appendChild(empty);
+    }
+
+    // Join button
+    const btn = document.getElementById(`btn-join-${team}`);
+    btn.textContent = myTeam===team ? '✓ JOINED' : 'JOIN';
+    btn.disabled = myTeam===team;
+  });
+
+  // Status
+  const aCount = Object.values(players).filter(p=>p.team==='a').length;
+  const bCount = Object.values(players).filter(p=>p.team==='b').length;
+  const statusEl = document.getElementById('lob-status');
+  const deployBtn = document.getElementById('btn-deploy');
+  const balanced = aCount===needed && bCount===needed;
+
+  if(!balanced){
+    statusEl.className='lobby-status warn';
+    statusEl.textContent=`Need ${needed}v${needed} — Alpha: ${aCount}/${needed}, Bravo: ${bCount}/${needed}`;
+    deployBtn.disabled = true;
+  } else {
+    statusEl.className='lobby-status ok';
+    statusEl.textContent=`✓ Ready to deploy — ${needed}v${needed}`;
+    deployBtn.disabled = !isHost;
+  }
+
+  if(!isHost) deployBtn.textContent = 'Waiting for host...';
+  else deployBtn.textContent = '⚔ DEPLOY';
+}
+
+/* ══════════════════════════════════════════
+   LOBBY ACTIONS
+══════════════════════════════════════════ */
+window.joinTeam = async function(team){
+  if(!roomCode) return;
+  await update(ref(db, `rooms/${roomCode}/players/${myId}`), {team});
+};
+
+window.hostSetMode = async function(mode){
+  if(!isHost) return;
+  await update(roomRef, {mode});
+};
+
+window.leaveRoom = async function(){
+  if(roomRef && myId){
+    await remove(ref(db, `rooms/${roomCode}/players/${myId}`));
+    off(roomRef);
+  }
+  roomCode = null; roomRef = null; isHost = false; G = {};
+  document.getElementById('zone-opp').innerHTML='';
+  document.getElementById('zone-player').innerHTML='';
+  showScreen('setup');
+};
+
+/* ══════════════════════════════════════════
+   START GAME (HOST ONLY)
+══════════════════════════════════════════ */
+window.doStartGame = async function(){
+  if(!isHost) return;
+  const snap = await get(roomRef);
+  const data = snap.val();
+  const players = data.players || {};
+  const mode = data.mode || '2v2';
+  const needed = mode==='2v2'?2:3;
+  const aPlayers = Object.entries(players).filter(([,p])=>p.team==='a');
+  const bPlayers = Object.entries(players).filter(([,p])=>p.team==='b');
+  if(aPlayers.length!==needed || bPlayers.length!==needed) return;
+
+  // Build ordered player list: interleave a,b,a,b...
+  const orderedIds = [];
+  for(let i=0;i<needed;i++){
+    orderedIds.push(aPlayers[i][0]);
+    orderedIds.push(bPlayers[i][0]);
+  }
+
+  // Build & shuffle deck(s)
+  const numDecks = needed;
+  let fullDeck = [];
+  for(let d=0;d<numDecks;d++){
+    NATIONS.forEach(n=>{
+      RANKS.forEach(r=>{
+        fullDeck.push({nation:n.code, name:n.name, r, v:VALS[r]||parseInt(r)});
+      });
+    });
+    fullDeck.push({joker:true, r:'J☢', v:100, nation:'joker', name:'JOKER'});
+    fullDeck.push({joker:true, r:'J☢', v:100, nation:'joker', name:'JOKER'});
+  }
+  fullDeck = shuffle(fullDeck);
+
+  // Deal to players
+  const dealMap = {};
+  orderedIds.forEach(pid=>{ dealMap[pid]=[]; });
+  fullDeck.forEach((c,i)=>{ dealMap[orderedIds[i%orderedIds.length]].push(c); });
+
+  // Build game state
+  const gameState = {
+    phase: 'flip',
+    round: 1,
+    scores: {a:0, b:0},
+    pot: [],
+    ante: [],
+    miniPairs: [],
+    table: {},      // {pid: card} — cards played this flip
+    tableReady: {}, // {pid: true} — who has acknowledged the result
+    playerOrder: orderedIds,
+    decks: {},
+    won: {}
+  };
+  orderedIds.forEach(pid=>{
+    gameState.decks[pid] = dealMap[pid];
+    gameState.won[pid] = [];
+  });
+
+  await update(roomRef, {phase:'playing', gameState});
+};
+
+/* ══════════════════════════════════════════
+   START LOCAL GAME (all clients)
+══════════════════════════════════════════ */
+function startLocalGame(data){
+  const gs = data.gameState;
+  const players = data.players;
+
+  // Build local G
+  G.mode = data.mode;
+  G.roomData = data;
+  G.playerOrder = gs.playerOrder;
+  G.myIdx = gs.playerOrder.indexOf(myId);
+  G.players = gs.playerOrder.map(pid=>({
+    id: pid,
+    name: pid===myId ? myName : players[pid]?.name || pid,
+    team: players[pid]?.team || 'a',
+    deck: (gs.decks[pid]||[]),
+    won:  (gs.won[pid]||[]),
+  }));
+
+  // Clear old player spots
+  document.getElementById('zone-opp').innerHTML='';
+  document.getElementById('zone-player').innerHTML='';
+
+  showScreen('game');
+  syncFromFirebase(gs);
+}
+
+/* ══════════════════════════════════════════
+   FIREBASE GAME STATE HANDLER
+══════════════════════════════════════════ */
+function handleGameState(data){
+  if(!data.gameState) return;
+  const gs = data.gameState;
+  const players = data.players;
+
+  if(!G.playerOrder){
+    startLocalGame(data);
+    return;
+  }
+
+  syncFromFirebase(gs);
+}
+
+function syncFromFirebase(gs){
+  if(!G.players) return;
+
+  // Update decks/won from firebase
+  G.players.forEach(p=>{
+    p.deck = (gs.decks?.[p.id]||[]);
+    p.won  = (gs.won?.[p.id]||[]);
+  });
+
+  G.phase    = gs.phase || 'flip';
+  G.round    = gs.round || 1;
+  G.scores   = gs.scores || {a:0,b:0};
+  G.pot      = gs.pot || [];
+  G.ante     = gs.ante || [];
+  G.miniPairs= gs.miniPairs || [];
+  G.table    = gs.table ? Object.entries(gs.table).map(([pid,card])=>{
+    const idx = G.playerOrder.indexOf(pid);
+    return {idx, pid, card};
+  }) : [];
+  G.tableReady = gs.tableReady || {};
+  G.resultShown = gs.resultShown || null;
+
+  render();
+
+  // Show result if one is pending
+  if(gs.resultShown && !document.getElementById('table-result').classList.contains('show')){
+    const r = gs.resultShown;
+    if(r.explosion){
+      triggerWW4Explosion(()=>{
+        openResult(r.type, r.title, r.sub, r.winTeam);
+      });
+    } else {
+      openResult(r.type, r.title, r.sub, r.winTeam);
+    }
+  } else if(!gs.resultShown){
+    closeResult();
+  }
+
+  // Waiting overlay: show if we've flipped and waiting for others
+  const myFlipped = gs.table?.[myId];
+  const allFlipped = G.playerOrder.every(pid=>gs.table?.[pid]);
+  const waitOverlay = document.getElementById('waiting-overlay');
+  if(myFlipped && !allFlipped && G.phase==='flip'){
+    waitOverlay.classList.add('show');
+    const flippedCount = Object.keys(gs.table||{}).length;
+    document.getElementById('waiting-txt').textContent=`${flippedCount}/${G.playerOrder.length} flipped...`;
+  } else {
+    waitOverlay.classList.remove('show');
+  }
+}
+
+/* ══════════════════════════════════════════
+   FLIP ACTION
+══════════════════════════════════════════ */
+window.onFlip = async function(){
+  if(!roomCode || G.myIdx === undefined) return;
+  const btn = document.getElementById('flip-btn');
+  btn.disabled = true;
+
+  const gs = (await get(ref(db,`rooms/${roomCode}/gameState`))).val();
+  if(!gs) return;
+
+  const phase = gs.phase;
+
+  if(phase==='flip'){
+    await doMyFlip(gs);
+  } else if(phase==='ww4ante'){
+    if(isActionLeader()) await pushWW4Ante(gs);
+  } else if(phase==='ww4flip'){
+    await doMyFlip(gs);
+  } else if(phase==='mini_ante'){
+    if(isActionLeader()) await pushMiniAnte(gs);
+  } else if(phase==='mini_flip'){
+    await doMyFlipMini(gs);
+  } else if(phase==='next_round'){
+    if(isActionLeader()) await pushNextRound(gs);
+  }
+};
+
+// Am I the "leader" for host-only actions?
+function isActionLeader(){
+  return myId === G.playerOrder[0];
+}
+
+/* ── My flip: draw top card, write to Firebase ── */
+async function doMyFlip(gs){
+  const myPlayer = G.players[G.myIdx];
+  let deck = [...(gs.decks?.[myId]||[])];
+  let won  = [...(gs.won?.[myId]||[])];
+
+  // Reshuffle won into deck if empty
+  if(deck.length===0 && won.length>0){
+    deck = shuffle(won); won=[];
+  }
+  if(deck.length===0) return; // out of cards
+
+  const card = deck.shift();
+  const updates = {};
+  updates[`rooms/${roomCode}/gameState/decks/${myId}`] = deck;
+  updates[`rooms/${roomCode}/gameState/won/${myId}`] = won;
+  updates[`rooms/${roomCode}/gameState/table/${myId}`] = card;
+  await update(ref(db), updates);
+
+  // Check if all players have flipped — host resolves
+  const newTable = {...(gs.table||{}), [myId]: card};
+  if(isHost && Object.keys(newTable).length === G.playerOrder.length){
+    setTimeout(()=>resolveFlipHost(newTable, gs), 420);
+  }
+}
+
+/* ── Mini flip: only involved players ── */
+async function doMyFlipMini(gs){
+  const miniPairs = gs.miniPairs || [];
+  const involved = [...new Set(miniPairs.flat())];
+  const myPid = myId;
+  if(!involved.includes(myPid)) return;
+
+  let deck = [...(gs.decks?.[myPid]||[])];
+  let won  = [...(gs.won?.[myPid]||[])];
+  if(deck.length===0 && won.length>0){ deck=shuffle(won); won=[]; }
+  if(deck.length===0) return;
+
+  const card = deck.shift();
+  const updates = {};
+  updates[`rooms/${roomCode}/gameState/decks/${myPid}`] = deck;
+  updates[`rooms/${roomCode}/gameState/won/${myPid}`]   = won;
+  updates[`rooms/${roomCode}/gameState/table/${myPid}`] = card;
+  await update(ref(db), updates);
+
+  const newTable = {...(gs.table||{}), [myPid]: card};
+  const allDone = involved.every(pid=>newTable[pid]);
+  if(isHost && allDone){
+    setTimeout(()=>resolveMiniFlipHost(newTable, gs), 420);
+  }
+}
+
+/* ══════════════════════════════════════════
+   HOST RESOLUTION LOGIC
+══════════════════════════════════════════ */
+async function resolveFlipHost(tableMap, gs){
+  if(!isHost) return;
+  const t = Object.entries(tableMap).map(([pid,card])=>({pid, card, idx:G.playerOrder.indexOf(pid)}));
+  const getTeam = pid => G.roomData?.players?.[pid]?.team || 'a';
+
+  const aJ = t.some(e=>e.card.joker && getTeam(e.pid)==='a');
+  const bJ = t.some(e=>e.card.joker && getTeam(e.pid)==='b');
+
+  let pot = [...(gs.pot||[])];
+  let scores = {...(gs.scores||{a:0,b:0})};
+  let decks = {};
+  let won = {};
+  G.playerOrder.forEach(pid=>{ decks[pid]=[...(gs.decks?.[pid]||[])]; won[pid]=[...(gs.won?.[pid]||[])]; });
+
+  const allCards = t.map(e=>e.card);
+
+  if(aJ&&bJ){
+    pot.push(...allCards);
+    await writeGameState({phase:'ww4ante',pot,scores,decks,won,ante:[],miniPairs:[],table:{},
+      resultShown:{type:'war',title:'WORLD WAR 4',sub:'Both Jokers — MAD! Lay 4 antes.',winTeam:'',explosion:true}});
+    return;
+  }
+  if(aJ||bJ){
+    const wt=aJ?'a':'b';
+    const all=[...pot,...allCards]; scores[wt]+=all.length;
+    distributeWon(won,decks,wt,all);
+    pot=[];
+    checkGameOverHost(scores,decks,won,wt,'Joker — auto win',allCards);
+    return;
+  }
+  const clashes = getClashesFromTable(t, getTeam);
+  if(clashes.length>0){
+    pot.push(...allCards);
+    await writeGameState({phase:'mini_ante',pot,scores,decks,won,ante:[],miniPairs:clashes,table:{},
+      resultShown:{type:'war',title:'WORLD WAR 4',sub:'Same rank! 2 antes, 1 flip decides all.',winTeam:'',explosion:true}});
+    return;
+  }
+  let aT=0,bT=0;
+  t.forEach(e=>{ if(getTeam(e.pid)==='a') aT+=e.card.joker?100:e.card.v; else bT+=e.card.joker?100:e.card.v; });
+  if(aT===bT){
+    pot.push(...allCards);
+    await writeGameState({phase:'ww4ante',pot,scores,decks,won,ante:[],miniPairs:[],table:{},
+      resultShown:{type:'war',title:'WORLD WAR 4',sub:`Tied at ${aT} — lay 4 antes!`,winTeam:'',explosion:true}});
+    return;
+  }
+  const wt=aT>bT?'a':'b';
+  const all=[...pot,...allCards]; scores[wt]+=all.length;
+  distributeWon(won,decks,wt,all); pot=[];
+  checkGameOverHost(scores,decks,won,wt,`${aT} vs ${bT}`,allCards);
+}
+
+async function pushWW4Ante(gs){
+  if(!isHost) return;
+  let pot=[...(gs.pot||[])]; let ante=[];
+  let decks={}; let won={};
+  G.playerOrder.forEach(pid=>{ decks[pid]=[...(gs.decks?.[pid]||[])]; won[pid]=[...(gs.won?.[pid]||[])]; });
+  G.playerOrder.forEach(pid=>{
+    const cards=drawNFrom(decks[pid],won[pid],4);
+    pot.push(...cards.drawn); decks[pid]=cards.deck; won[pid]=cards.won;
+    ante.push({pid,cards:cards.drawn});
+  });
+  await writeGameState({phase:'ww4flip',pot,ante,decks,won,table:{},miniPairs:[],scores:gs.scores,resultShown:null});
+}
+
+async function resolveMiniFlipHost(tableMap, gs){
+  if(!isHost) return;
+  const miniPairs = gs.miniPairs||[];
+  const involved = [...new Set(miniPairs.flat())];
+  const getTeam = pid => G.roomData?.players?.[pid]?.team || 'a';
+  const flipped = involved.map(pid=>({pid,card:tableMap[pid]})).filter(e=>e.card);
+
+  let pot=[...(gs.pot||[])]; let scores={...(gs.scores||{a:0,b:0})};
+  let decks={}; let won={};
+  G.playerOrder.forEach(pid=>{ decks[pid]=[...(gs.decks?.[pid]||[])]; won[pid]=[...(gs.won?.[pid]||[])]; });
+
+  let best=-1; let winnerPid=null;
+  flipped.forEach(e=>{ const v=e.card.joker?100:e.card.v; if(v>best){best=v;winnerPid=e.pid;} });
+  const tied=flipped.filter(e=>(e.card.joker?100:e.card.v)===best);
+
+  if(tied.length>1){
+    const newP=[];
+    for(let i=0;i<tied.length;i++) for(let j=i+1;j<tied.length;j++)
+      if(getTeam(tied[i].pid)!==getTeam(tied[j].pid)) newP.push([tied[i].pid,tied[j].pid]);
+    pot.push(...flipped.map(e=>e.card));
+    await writeGameState({phase:'mini_ante',pot,scores,decks,won,ante:[],miniPairs:newP,table:{},
+      resultShown:{type:'war',title:'WORLD WAR 4',sub:'Still tied — 2 more down.',winTeam:'',explosion:true}});
+    return;
+  }
+  const wt=getTeam(winnerPid);
+  const all=[...pot,...flipped.map(e=>e.card)]; scores[wt]+=all.length;
+  distributeWon(won,decks,wt,all); pot=[];
+  const wc=flipped.find(e=>e.pid===winnerPid).card;
+  const winName=G.players.find(p=>p.id===winnerPid)?.name||winnerPid;
+  checkGameOverHost(scores,decks,won,wt,`${winName} flipped ${wc.joker?'JOKER':wc.r} — wins all`,flipped.map(e=>e.card));
+}
+
+async function pushMiniAnte(gs){
+  if(!isHost) return;
+  const miniPairs=gs.miniPairs||[];
+  const involved=[...new Set(miniPairs.flat())];
+  let pot=[...(gs.pot||[])]; let ante=[];
+  let decks={}; let won={};
+  G.playerOrder.forEach(pid=>{ decks[pid]=[...(gs.decks?.[pid]||[])]; won[pid]=[...(gs.won?.[pid]||[])]; });
+  involved.forEach(pid=>{
+    const cards=drawNFrom(decks[pid],won[pid],2);
+    pot.push(...cards.drawn); decks[pid]=cards.deck; won[pid]=cards.won;
+    ante.push({pid,cards:cards.drawn});
+  });
+  await writeGameState({phase:'mini_flip',pot,ante,decks,won,table:{},miniPairs:gs.miniPairs,scores:gs.scores,resultShown:null});
+}
+
+async function pushNextRound(gs){
+  if(!isHost) return;
+  const newRound=(gs.round||1)+1;
+  const scores=gs.scores||{a:0,b:0};
+  const decks=gs.decks||{}; const won=gs.won||{};
+  // Check game over
+  const getTeam=pid=>G.roomData?.players?.[pid]?.team||'a';
+  const aOut=G.playerOrder.filter(pid=>getTeam(pid)==='a').every(pid=>!(decks[pid]?.length)&&!(won[pid]?.length));
+  const bOut=G.playerOrder.filter(pid=>getTeam(pid)==='b').every(pid=>!(decks[pid]?.length)&&!(won[pid]?.length));
+  if(aOut||bOut){
+    const winner=aOut?'b':'a';
+    await update(roomRef,{phase:'gameover',winner});
+    return;
+  }
+  await writeGameState({phase:'flip',round:newRound,scores,decks,won,pot:[],ante:[],miniPairs:[],table:{},resultShown:null});
+}
+
+/* ══════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════ */
+function checkGameOverHost(scores,decks,won,winTeam,sub,tableCards){
+  const getTeam=pid=>G.roomData?.players?.[pid]?.team||'a';
+  const aOut=G.playerOrder.filter(pid=>getTeam(pid)==='a').every(pid=>!decks[pid]?.length&&!won[pid]?.length);
+  const bOut=G.playerOrder.filter(pid=>getTeam(pid)==='b').every(pid=>!decks[pid]?.length&&!won[pid]?.length);
+  if(aOut||bOut){
+    const winner=aOut?'b':'a';
+    writeGameState({phase:'flip',round:G.round,scores,decks,won,pot:[],ante:[],miniPairs:[],table:{},
+      resultShown:{type:winner===winTeam?'win':'lose',title:winner==='a'?'CHAMPIONS':'DEFEATED',
+        sub:`Team ${winner==='a'?'Alpha':'Bravo'} wins the war`,winTeam:winner,gameover:true}}).then(()=>{
+      update(roomRef,{phase:'gameover',winner});
+    });
+    return;
+  }
+  writeGameState({phase:'next_round',scores,decks,won,pot:[],ante:[],miniPairs:[],table:{},
+    resultShown:{type:winTeam==='a'?'win':'lose',title:winTeam==='a'?'VICTORY':'DEFEAT',sub,winTeam}});
+}
+
+function distributeWon(won,decks,team,cards){
+  const teamPids=G.playerOrder.filter(pid=>G.roomData?.players?.[pid]?.team===team);
+  if(!teamPids.length) return;
+  const recipient=teamPids[Math.floor(Math.random()*teamPids.length)];
+  won[recipient]=[...(won[recipient]||[]),...shuffle(cards)];
+}
+
+function drawNFrom(deck,won,n){
+  deck=[...deck]; won=[...won];
+  if(deck.length===0&&won.length>0){deck=shuffle(won);won=[];}
+  const drawn=[];
+  for(let i=0;i<n;i++){
+    if(deck.length===0) break;
+    drawn.push(deck.shift());
+  }
+  return {drawn,deck,won};
+}
+
+function getClashesFromTable(t, getTeam){
+  const cl=[];
+  for(let i=0;i<t.length;i++) for(let j=i+1;j<t.length;j++){
+    if(getTeam(t[i].pid)!==getTeam(t[j].pid)&&t[i].card.r===t[j].card.r&&!t[i].card.joker)
+      cl.push([t[i].pid,t[j].pid]);
+  }
+  return cl;
+}
+
+async function writeGameState(gs){
+  await update(ref(db,`rooms/${roomCode}`),{gameState:gs});
+}
+
+/* ══════════════════════════════════════════
+   RENDER
+══════════════════════════════════════════ */
+function render(){
+  if(!G.players) return;
+  document.getElementById('sc-a').textContent=G.scores?.a||0;
+  document.getElementById('sc-b').textContent=G.scores?.b||0;
+  document.getElementById('rnd-lbl').textContent=`Round ${G.round||1}`;
+  renderZones();
+  renderAnte();
+  renderBtn();
+  renderStatus();
+  const pp=document.getElementById('pot-pill');
+  if(G.pot?.length>0){pp.textContent=`${G.pot.length} in pot`;pp.classList.add('show');}
+  else pp.classList.remove('show');
+}
+
+function renderZones(){
+  const oEl=document.getElementById('zone-opp');
+  const pEl=document.getElementById('zone-player');
+  const myIdx=G.myIdx;
+
+  G.players.forEach((p,idx)=>{
+    const isMe=(idx===myIdx);
+    const spotId=`pspot-${idx}`;
+    const cardId=`pcard-${idx}`;
+    const nameId=`pname-${idx}`;
+    const ctId=`pct-${idx}`;
+    const total=p.deck.length+p.won.length;
+    const fl=G.table.find(e=>e.idx===idx);
+
+    let spot=document.getElementById(spotId);
+    if(!spot){
+      spot=document.createElement('div'); spot.className='pspot'; spot.id=spotId;
+      const info=document.createElement('div'); info.className='pspot-info';
+      const nm=document.createElement('div');
+      nm.id=nameId; nm.className='pspot-name'+(isMe?' me':'');
+      // Color by team
+      if(!isMe){ nm.style.color = p.team==='a'?'var(--alpha)':'var(--bravo)'; }
+      nm.textContent=isMe?'YOU':p.name;
+      const ct=document.createElement('div'); ct.id=ctId; ct.className='pspot-ct';
+      ct.textContent=total+' cards';
+      info.appendChild(nm); info.appendChild(ct);
+      const cardWrap=document.createElement('div'); cardWrap.id=cardId; cardWrap.style.cssText='display:flex;';
+      if(p.team==='b'&&!isMe){ spot.appendChild(info); spot.appendChild(cardWrap); oEl.appendChild(spot); }
+      else if(isMe||p.team==='a'){ spot.appendChild(cardWrap); spot.appendChild(info); pEl.appendChild(spot); }
+      else { spot.appendChild(info); spot.appendChild(cardWrap); oEl.appendChild(spot); }
+    }
+
+    document.getElementById(ctId).textContent=total+' cards';
+    const cardWrap=document.getElementById(cardId);
+    cardWrap.innerHTML='';
+    let cardEl;
+    if(fl) cardEl=mkFace(fl.card,'xl',true);
+    else if(!total) cardEl=mkEmpty('xl');
+    else cardEl=mkBack('xl');
+    cardWrap.appendChild(cardEl);
+  });
+}
+
+function renderAnte(){
+  const strip=document.getElementById('ante-strip');
+  const rows=document.getElementById('ante-rows');
+  if(!G.ante?.length){strip.classList.remove('on');return;}
+  strip.classList.add('on');
+  document.getElementById('ante-lbl').textContent=
+    G.phase==='ww4flip'?'⚡ WW4 — 4 Down, Flip 1':G.phase==='mini_flip'?'⚡ WW4 — 2 Down, Flip 1':'⚡ World War 4';
+  rows.innerHTML='';
+  G.ante.forEach(entry=>{
+    const p=G.players.find(pl=>pl.id===entry.pid)||G.players[0];
+    const row=document.createElement('div'); row.className='ante-row';
+    const nm=document.createElement('div'); nm.className='ante-pname';
+    nm.style.color=p.team==='a'?'var(--alpha)':'var(--bravo)';
+    nm.textContent=entry.pid===myId?'YOU':p.name;
+    const cards=document.createElement('div'); cards.className='ante-cards-row';
+    (entry.cards||[]).forEach(()=>cards.appendChild(mkBack('xs')));
+    row.appendChild(nm); row.appendChild(cards); rows.appendChild(row);
+  });
+}
+
+function renderBtn(){
+  const btn=document.getElementById('flip-btn'); btn.className='flip-btn';
+  const phase=G.phase||'flip';
+  const myFlipped=G.table?.some(e=>e.pid===myId);
+  const involved=G.miniPairs?.flat()?.includes(myId);
+
+  if(phase==='flip'){
+    btn.disabled=myFlipped;
+    btn.textContent=myFlipped?'⏳ WAITING...':(G.pot?.length?`⚔ FLIP — ${G.pot.length} AT STAKE`:'⚔ FLIP CARDS');
+  } else if(phase==='ww4ante'){
+    btn.disabled=!isActionLeader();
+    btn.className='flip-btn war';
+    btn.textContent=isActionLeader()?'⚡ WW4 — LAY 4 ANTES':'⏳ WAITING FOR HOST...';
+  } else if(phase==='ww4flip'){
+    btn.disabled=myFlipped;
+    btn.className='flip-btn war';
+    btn.textContent=myFlipped?'⏳ WAITING...':'⚡ FLIP BATTLE CARDS';
+  } else if(phase==='mini_ante'){
+    btn.disabled=!isActionLeader();
+    btn.className='flip-btn war';
+    btn.textContent=isActionLeader()?'⚡ WW4 — LAY 2 ANTES':'⏳ WAITING FOR HOST...';
+  } else if(phase==='mini_flip'){
+    btn.disabled=!involved||myFlipped;
+    btn.className='flip-btn war';
+    btn.textContent=!involved?'⏳ SPECTATING...':(myFlipped?'⏳ WAITING...':'⚡ FLIP — DECIDES ALL');
+  } else if(phase==='next_round'){
+    btn.disabled=!isActionLeader();
+    btn.textContent=isActionLeader()?'→ NEXT ROUND':'⏳ WAITING...';
+  } else {
+    btn.disabled=true; btn.textContent='...';
+  }
+}
+
+function renderStatus(){
+  const b=document.getElementById('status-bar'); b.className='status';
+  const phase=G.phase||'flip';
+  if(phase==='flip') b.textContent=G.pot?.length?`${G.pot.length} cards in pot · flip your card`:`Flip your card`;
+  else if(phase==='ww4ante'||phase==='ww4flip'){b.className='status hot';b.textContent=`⚡ World War 4 — ${G.pot?.length||0} at stake`;}
+  else if(phase==='mini_ante'||phase==='mini_flip'){b.className='status hot';b.textContent='⚡ World War 4 — same rank, 1 flip decides';}
+  else if(phase==='next_round') b.textContent='Round over — advance when ready';
+}
+
+/* ══════════════════════════════════════════
+   RESULT OVERLAY
+══════════════════════════════════════════ */
+function openResult(type,title,sub,winTeam){
+  const oc=document.getElementById('tr-outcome');
+  oc.className=`tr-outcome ${type}`; oc.textContent=title;
+  const teamEl=document.getElementById('tr-team');
+  if(winTeam){teamEl.className=`tr-team ${winTeam}`;teamEl.textContent=`TEAM ${winTeam==='a'?'ALPHA':'BRAVO'}`;}
+  else{teamEl.className='tr-team none';teamEl.textContent='';}
+  document.getElementById('tr-sub').textContent=sub;
+
+  // Apply rings
+  G.players.forEach((p,i)=>{
+    const cw=document.getElementById(`pcard-${i}`);
+    if(!cw) return; const card=cw.firstChild; if(!card) return;
+    card.classList.remove('ring-win','ring-lose');
+    if(winTeam){ if(p.team===winTeam) card.classList.add('ring-win'); else card.classList.add('ring-lose'); }
+  });
+
+  const btn=document.getElementById('tr-btn');
+  const phase=G.phase;
+  // Next Round button: only leader can advance; others see "Waiting..."
+  if(phase==='next_round' || phase==='flip'){
+    if(isActionLeader()){
+      btn.disabled=false;
+      btn.textContent='NEXT ROUND →';
+      btn.onclick=async()=>{ closeResult(); await pushNextRound(await (await get(ref(db,`rooms/${roomCode}/gameState`))).val()||{}); };
+    } else {
+      btn.disabled=true;
+      btn.textContent='⏳ WAITING...';
+      btn.onclick=null;
+    }
+  } else {
+    btn.disabled=true; btn.textContent='· · ·'; btn.onclick=null;
+  }
+
+  document.getElementById('zone-center').classList.add('result-active');
+  document.getElementById('table-result').classList.add('show');
+}
+
+function closeResult(){
+  document.getElementById('zone-center').classList.remove('result-active');
+  document.getElementById('table-result').classList.remove('show');
+  G.players&&G.players.forEach((_,i)=>{
+    const cw=document.getElementById(`pcard-${i}`);
+    if(cw&&cw.firstChild){cw.firstChild.classList.remove('ring-win','ring-lose');}
+  });
+}
+
+/* ══════════════════════════════════════════
+   GAME OVER
+══════════════════════════════════════════ */
+// Listen for gameover phase
+function checkGameoverPhase(data){
+  if(data.phase==='gameover' && data.winner){
+    const winner=data.winner;
+    const myTeam=data.players?.[myId]?.team;
+    const iWin=myTeam===winner;
+    document.getElementById('go-result').className=`go-result ${iWin?'win':'lose'}`;
+    document.getElementById('go-result').textContent=iWin?'CHAMPIONS':'DEFEATED';
+    document.getElementById('go-team').className=`go-team ${winner}`;
+    document.getElementById('go-team').textContent=`TEAM ${winner==='a'?'ALPHA':'BRAVO'}`;
+    showScreen('gameover');
+  }
+}
+
+window.playAgain = async function(){
+  if(!isHost) return;
+  await update(roomRef,{phase:'lobby',gameState:null,winner:null});
+  document.getElementById('zone-opp').innerHTML='';
+  document.getElementById('zone-player').innerHTML='';
+  G={};
+  showScreen('lobby');
+};
+
+/* ══════════════════════════════════════════
+   EXPLOSION
+══════════════════════════════════════════ */
+function triggerWW4Explosion(cb){
+  const blast=document.getElementById('ww4-blast');
+  const pp=document.getElementById('blast-particles');
+  pp.innerHTML='';
+  const colors=['#ffdd00','#ff8800','#ff4422','#ffaa00','#ffffff','#ff6644'];
+  for(let i=0;i<28;i++){
+    const s=document.createElement('div'); s.className='spark';
+    const angle=Math.random()*Math.PI*2; const dist=60+Math.random()*120;
+    s.style.cssText=`--tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist}px;--c:${colors[i%colors.length]};--d:${0.5+Math.random()*0.6}s;--delay:${Math.random()*0.15}s;width:${3+Math.random()*5}px;height:${3+Math.random()*5}px;`;
+    pp.appendChild(s);
+  }
+  blast.className='ww4-blast boom';
+  setTimeout(()=>{ blast.className='ww4-blast fade'; setTimeout(()=>{blast.className='ww4-blast';cb();},600); },900);
+}
+
+/* ══════════════════════════════════════════
+   CARD RENDERING
+══════════════════════════════════════════ */
+function mkBack(sz='lg'){
+  const el=document.createElement('div'); el.className=`card back ${sz}`;
+  el.innerHTML=`<div class="cb-inner"><div class="cb-exp">💥</div><div class="cb-ww4">WORLD<br>WAR 4</div><div class="cb-sub">WW4</div></div>`;
+  return el;
+}
+function mkFace(c,sz='lg',anim=false){
+  const el=document.createElement('div');
+  const nation=c.joker?'joker':c.nation;
+  el.className=`card face ${nation} ${sz}${anim?' flip-in':''}`;
+  if(c.joker){
+    el.innerHTML=`<div class="cf-inner"><div class="cf-nation">☢ JOKER</div><div class="cf-rank">💥<br>WW4</div><div class="cf-word">AUTO WIN</div></div>`;
+  } else {
+    el.innerHTML=`<div class="cf-inner"><div class="cf-nation">${c.name}</div><div class="cf-rank">${c.r}</div><div class="cf-line"></div><div class="cf-word">${WORD[c.r]||c.r}</div></div>`;
+  }
+  return el;
+}
+function mkEmpty(sz='lg'){const el=document.createElement('div');el.className=`card empty ${sz}`;return el;}
+
+/* ══════════════════════════════════════════
+   UTILS
+══════════════════════════════════════════ */
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+
+/* ══════════════════════════════════════════
+   MASTER FIREBASE LISTENER (top-level)
+══════════════════════════════════════════ */
+// Override subscribeRoom to also handle gameover
+const _origSubscribe = subscribeRoom;
+function subscribeRoom(){
+  if(roomUnsub){ try{off(roomRef);}catch(e){} }
+  roomUnsub = onValue(roomRef, snap=>{
+    if(!snap.exists()){ leaveRoom(); return; }
+    const data=snap.val();
+    // Gameover
+    if(data.phase==='gameover'){ checkGameoverPhase(data); return; }
+    // Lobby
+    if(data.phase==='lobby'){ renderLobby(data); return; }
+    // Playing
+    if(data.phase==='playing'||data.gameState){
+      G.roomData=data;
+      if(!G.playerOrder){ startLocalGame(data); }
+      else { handleGameState(data); }
+    }
+  });
+}
+// Re-assign after definition
+window._subscribeRoom=subscribeRoom;
+
+/* ── PWA install support ── */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
