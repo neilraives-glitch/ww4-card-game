@@ -1399,8 +1399,16 @@ function renderAnte(){
   const strip=document.getElementById('ante-strip'),rows=document.getElementById('ante-rows');
   if(!G.ante||!G.ante.length){strip.classList.remove('on');return;}
   strip.classList.add('on');
+  /* The two war types were indistinguishable — both read "World War 4" — so you
+     could not tell whether Fortify should be applying. A value tie lays 4 and
+     Fortify halves it; a rank clash lays 2 flat and Fortify never applies. */
+  const fort=G.fortifyTeams&&G.fortifyTeams.size;
   document.getElementById('ante-lbl').textContent=
-    G.phase==='ww4flip'?'⚡ WW4 — 4 Down, Flip 1':G.phase==='mini_flip'?'⚡ WW4 — 2 Down, Flip 1':'⚡ World War 4';
+    G.phase==='ww4flip'  ? '⚡ WORLD WAR 4 — 4 DOWN, FLIP 1'
+  : G.phase==='mini_flip'? '💥 CLASH — 2 DOWN, FLIP 1'
+  : G.phase==='mini_ante'? '💥 CLASH — 2 EACH'
+  : fort                 ? '⚡ WORLD WAR 4 — 4 EACH · 🛡 FORTIFY 2'
+  :                        '⚡ WORLD WAR 4 — 4 EACH';
   rows.innerHTML='';
   /* Tighten the fan as the strip gets busier: 4 antes x 6 players will not sit
      on one line at a gentle overlap, and a wrapped strip costs the board ~55px
@@ -1419,7 +1427,8 @@ function renderAnte(){
     const row=document.createElement('div');row.className='ante-row';
     const nm=document.createElement('div');nm.className='ante-pname';
     nm.style.color=p.team==='a'?'var(--alpha)':'var(--bravo)';
-    nm.textContent=entry.idx===0?'YOU':p.name;
+    const fortified=G.fortifyTeams&&G.fortifyTeams.has(p.team)&&/^ww4/.test(G.phase);
+    nm.textContent=(entry.idx===0?'YOU':p.name)+(fortified?' 🛡':'');
     row.appendChild(nm);
     const cards=document.createElement('div');cards.className='ante-cards-row';
     entry.cards.forEach(()=>cards.appendChild(mkBack('xs')));
@@ -1744,7 +1753,11 @@ function resolveFlip(){
     toPot(t.map(e=>e.card));G.phase='ww4ante';G.ante=[];G.table=[];
     triggerWW4Explosion(()=>{
       render();
-      const fortifyMsg=G.fortifyTeams.size?' 🛡 RUSSIA FORTIFY reduces their antes to 2.':'';
+      /* Say so when Russia was on the table but Iron Dome suppressed it —
+         otherwise Fortify just silently fails to happen and reads as a bug. */
+      const ruDomed=t.some(e=>e.card.nation==='ru'&&!ab.live(G.players[e.idx].team));
+      const fortifyMsg=G.fortifyTeams.size?' 🛡 RUSSIA FORTIFY reduces their antes to 2.'
+        : ruDomed?' 🇮🇱 IRON DOME cancels RUSSIA FORTIFY — everyone lays 4.':'';
       openResult('war','WORLD WAR 4',`Tied at ${aT} — lay 4 antes!${fortifyMsg}`,t,'',()=>{render();});
     });
     return;
