@@ -760,7 +760,11 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
      we actually have, so cards get LARGER here than on desktop rather than smaller.
      DOM order is already opp → center → player, which is the layout we want. */
   .battle-row{flex-direction:column;gap:2px;}
-  .zone-opp,.zone-player{flex:0 0 auto;gap:4px;}
+  /* Teammates sit side by side rather than stacking, so the board is always two
+     card rows deep whether it's 1v1 or 2v2. Stacked, 2v2 needed four rows plus
+     the ante strip and could not fit a 568px screen even at the minimum card
+     size — it overflowed by up to 128px with the score bar clipped. */
+  .zone-opp,.zone-player{flex:0 0 auto;flex-direction:row;gap:6px;}
   .zone-center{width:100%;}
   /* Once stacked, the binding constraint is HEIGHT, not width — so derive the card
      size from the space actually left over rather than guessing width breakpoints.
@@ -1165,13 +1169,44 @@ function leaveSplash(){
 }
 
 /* ── render ── */
+/* ── Mobile board fitter ──
+   The stacked mobile board's height depends on things CSS cannot see: two cards
+   in 1v1 but four in 2v2, and the ante strip appearing during World War 4. A
+   fixed card size overflowed both — 59px with the ante strip up, 324px in 2v2,
+   which pushed a card fully off-screen and hid the player's own score bar.
+
+   So measure instead of guess. Solving arithmetically does not work — board
+   height is not linear in card size (labels rewrap, the flex column
+   redistributes), so a probe-and-solve oscillated: repeated calls flipped
+   between 58.6px and 34px forever. Binary search on "does it fit" is monotone
+   and settles on the same answer every time. Desktop drops back to the
+   stylesheet's value. */
+const CARD_MIN=34, CARD_MAX=132, FIT_STEPS=8;
+function fitBoard(){
+  const root=document.documentElement;
+  if(!window.matchMedia('(max-width:430px)').matches){root.style.removeProperty('--cw-xl');return;}
+  const wrap=document.querySelector('.table-wrap'),inner=document.querySelector('.table-inner');
+  if(!wrap||!inner||!inner.querySelector('.pspot')) return;
+  const hi0=Math.min(CARD_MAX,innerWidth*0.34);   // keep the width cap too
+  let lo=CARD_MIN,hi=hi0,best=CARD_MIN;
+  for(let i=0;i<FIT_STEPS;i++){
+    const mid=(lo+hi)/2;
+    root.style.setProperty('--cw-xl',mid+'px');
+    // wrap.clientHeight re-read each pass: the ante strip changes it between phases
+    if(inner.scrollHeight<=wrap.clientHeight){best=mid;lo=mid;}else{hi=mid;}
+  }
+  root.style.setProperty('--cw-xl',best+'px');
+}
+addEventListener('resize',fitBoard);
+addEventListener('orientationchange',()=>setTimeout(fitBoard,120));
+
 function render(){
   document.getElementById('sc-a').textContent=G.scores.a;
   document.getElementById('sc-b').textContent=G.scores.b;
   document.getElementById('tb-name-opp').textContent=teamLabel('b');
   document.getElementById('tb-name-me').textContent=teamLabel('a');
   document.getElementById('rnd-lbl').textContent=`Round ${G.round}`;
-  renderZones();renderAnte();renderBtn();renderStatus();
+  renderZones();renderAnte();renderBtn();renderStatus();fitBoard();
   const pp=document.getElementById('pot-pill');
   if(G.pot.length>0){
     pp.textContent=`${G.pot.length} in pot`;pp.classList.add('show');
@@ -1374,6 +1409,7 @@ function openResult(type,title,sub,tableEntries,winTeam,nextFn){
   G.resultOpen=true; renderBtn();
   document.getElementById('zone-center').classList.add('result-active');
   document.getElementById('table-result').classList.add('show');
+  fitBoard();  // the panel changes height here (PLAY AGAIN is taller than NEXT ROUND)
 }
 
 function openGameOver(winner){
@@ -1394,6 +1430,7 @@ function openGameOver(winner){
   G.resultOpen=true; renderBtn();
   document.getElementById('zone-center').classList.add('result-active');
   document.getElementById('table-result').classList.add('show');
+  fitBoard();  // the panel changes height here (PLAY AGAIN is taller than NEXT ROUND)
 }
 
 function closeResult(){
