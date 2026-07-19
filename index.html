@@ -18,6 +18,8 @@
 
 /* ── COUNTRY PALETTE ── */
 :root{
+  /* Card widths — scaled down by the narrow-viewport media queries below */
+  --cw-xl:112px; --cw-lg:66px; --cw-md:52px; --cw-sm:44px; --cw-xs:27px;
   /* USA — navy + red */
   --usa-bg:#0a1628; --usa-mid:#1a2e50; --usa-acc:#c8102e; --usa-txt:#e8dfc8;
   /* CHINA — deep red + gold */
@@ -213,7 +215,7 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 .ctr-sub{font-weight:700;font-size:8px;letter-spacing:.3em;text-transform:uppercase;
   color:rgba(255,255,255,.09);pointer-events:none;user-select:none;}
 .flip-slots{display:flex;gap:8px;align-items:center;justify-content:center;}
-.slot-empty{width:66px;height:92px;border-radius:6px;border:2px dashed rgba(255,255,255,.1);
+.slot-empty{width:var(--cw-lg);height:calc(var(--cw-lg)*1.393);border-radius:6px;border:2px dashed rgba(255,255,255,.1);
   display:flex;align-items:center;justify-content:center;}
 .slot-lbl{font-weight:700;font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.12);}
 .pot-pill{background:rgba(0,0,0,.38);border:1px solid rgba(200,168,75,.32);border-radius:20px;
@@ -278,11 +280,13 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 /* ══════════ CARDS ══════════ */
 .card{border-radius:5px;overflow:hidden;flex-shrink:0;
   box-shadow:0 3px 12px rgba(0,0,0,.65);position:relative;}
-.xl{width:112px;height:156px;border-radius:8px;}
-.lg{width:66px;height:92px;}
-.md{width:52px;height:72px;border-radius:4px;}
-.sm{width:44px;height:61px;border-radius:3px;}
-.xs{width:27px;height:38px;border-radius:2px;}
+/* Card widths are variables so narrow viewports can scale the whole set down
+   in one place. Height is derived — every size shares a ~1.393 aspect ratio. */
+.xl{width:var(--cw-xl);height:calc(var(--cw-xl)*1.393);border-radius:8px;}
+.lg{width:var(--cw-lg);height:calc(var(--cw-lg)*1.393);}
+.md{width:var(--cw-md);height:calc(var(--cw-md)*1.393);border-radius:4px;}
+.sm{width:var(--cw-sm);height:calc(var(--cw-sm)*1.393);border-radius:3px;}
+.xs{width:var(--cw-xs);height:calc(var(--cw-xs)*1.393);border-radius:2px;}
 /* xl card font overrides */
 .xl .cf-rank{font-size:54px;}
 .xl .cf-word{font-size:16px;}
@@ -582,6 +586,27 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 /* Cards fly into the pot before the next round */
 .card.collect{animation:collectFly .3s ease-in forwards;pointer-events:none;}
 @keyframes collectFly{to{transform:translate(var(--dx,0),var(--dy,0)) scale(.2) rotate(12deg);opacity:0;}}
+/* ══════ NARROW VIEWPORTS ══════
+   The battle row lays the two card columns side by side with the result panel
+   between them. At default card sizes that row is wider than a phone screen,
+   and .table-wrap has overflow:hidden — so cards were being clipped off both
+   edges rather than shrinking. Scaling the card variables keeps the whole row
+   inside the viewport; the .xl winner card is the main offender. */
+@media (max-width:430px){
+  :root{ --cw-xl:84px; --cw-lg:52px; --cw-md:42px; --cw-sm:35px; --cw-xs:22px; }
+  .xl .cf-rank{font-size:40px;}
+  .xl .cf-word{font-size:12px;}
+  .xl .cf-nation{font-size:9px;}
+  .xl .cff{font-size:11px;}
+  .battle-row{gap:3px;}
+  .table-inner{padding:6px 4px;}
+}
+@media (max-width:360px){
+  :root{ --cw-xl:72px; --cw-lg:45px; --cw-md:36px; --cw-sm:30px; --cw-xs:19px; }
+  .xl .cf-rank{font-size:34px;}
+  .pspot-name{font-size:12px;}
+  .pspot-ct{font-size:13px;}
+}
 </style>
 </head>
 <body>
@@ -1028,6 +1053,9 @@ function renderAnte(){
 
 function renderBtn(){
   const btn=document.getElementById('flip-btn');btn.className='flip-btn';
+  // While a result panel is up, NEXT ROUND is the only valid action — keeping the
+  // flip button live gave the round two competing CTAs, with the wrong one louder.
+  if(G.resultOpen){btn.disabled=true;btn.textContent='—';return;}
   if(G.phase==='flip'){btn.disabled=false;btn.textContent=G.pot.length?`⚔ FLIP — ${G.pot.length} AT STAKE`:'⚔ FLIP CARDS';
     if(!G.pot.length) btn.classList.add('ready-pulse');}
   else if(G.phase==='ww4ante'){btn.disabled=false;btn.className='flip-btn war';btn.textContent='⚡ WW4 — LAY 4 ANTES';}
@@ -1090,6 +1118,7 @@ function openResult(type,title,sub,tableEntries,winTeam,nextFn){
     screenShake();
   }
 
+  G.resultOpen=true; renderBtn();
   document.getElementById('zone-center').classList.add('result-active');
   document.getElementById('table-result').classList.add('show');
 }
@@ -1109,11 +1138,13 @@ function openGameOver(winner){
   tr.classList.remove('win-flash','lose-flash','war-flash');
   tr.classList.add(winner==='a'?'win-flash':'lose-flash');
   screenShake();
+  G.resultOpen=true; renderBtn();
   document.getElementById('zone-center').classList.add('result-active');
   document.getElementById('table-result').classList.add('show');
 }
 
 function closeResult(){
+  G.resultOpen=false;
   document.getElementById('zone-center').classList.remove('result-active');
   document.getElementById('table-result').classList.remove('show');
   // Clear any win/lose rings
