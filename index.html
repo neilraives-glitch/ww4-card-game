@@ -76,12 +76,12 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 .s-hero{position:relative;width:100%;max-width:420px;
   display:flex;align-items:center;justify-content:center;
   /* Height follows the cloud so the title always lands on its mass. */
-  min-height:clamp(190px, min(58vw, 30vh), 300px);
-  margin-bottom:26px;}
+  min-height:clamp(240px, min(74vw, 40vh), 400px);
+  margin-bottom:22px;}
 
 .s-cloud{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);
-  width:clamp(210px, min(62vw, 34vh), 340px);
-  opacity:.62;filter:saturate(.88) contrast(1.05);
+  width:clamp(260px, min(80vw, 44vh), 440px);
+  opacity:.82;filter:saturate(.95) contrast(1.06);
   animation:cloudRise 14s ease-in-out infinite;z-index:0;}
 
 /* Flag columns flank the wordmark — three a side, west vs east. */
@@ -89,8 +89,8 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
   display:flex;flex-direction:column;gap:clamp(6px,2.2vw,14px);z-index:2;}
 .s-flags.west{left:0;}
 .s-flags.east{right:0;}
-.s-flags img{width:clamp(38px, 12.5vw, 66px);height:auto;display:block;
-  opacity:.88;filter:saturate(.95) drop-shadow(0 2px 8px rgba(0,0,0,.75));
+.s-flags img{width:clamp(48px, 16vw, 88px);height:auto;display:block;
+  opacity:1;filter:saturate(1.02) drop-shadow(0 3px 11px rgba(0,0,0,.8));
   animation:flagDrift 18s ease-in-out infinite;}
 .s-flags.west img:nth-child(2){margin-left:clamp(6px,3vw,18px);}
 .s-flags.east img:nth-child(2){margin-right:clamp(6px,3vw,18px);}
@@ -144,9 +144,9 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
    padding reserves the flag columns' width — without it the wordmark's last
    glyph runs under the east column. */
 .s-title{position:relative;z-index:3;width:100%;text-align:center;
-  padding:0 clamp(52px, 17vw, 84px);}
+  padding:0 clamp(58px, 19.5vw, 104px);}
 .s-title-main{font-family:'Bebas Neue',sans-serif;
-  font-size:clamp(30px,10.5vw,54px);line-height:.92;letter-spacing:.04em;
+  font-size:clamp(27px,9.4vw,50px);line-height:.92;letter-spacing:.03em;
   color:var(--cream);text-shadow:0 2px 18px rgba(0,0,0,.9),0 0 42px rgba(192,57,43,.45);}
 .s-title-rule{height:2px;width:64px;margin:9px auto 7px;
   background:linear-gradient(90deg,transparent,var(--gold),transparent);}
@@ -156,31 +156,31 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
   text-shadow:0 1px 10px rgba(0,0,0,.95);}
 
 /* Opaque enough to sit on the artwork without the map showing through the field. */
-.s-box{width:100%;max-width:360px;background:rgba(4,7,6,.72);
+.s-box{width:100%;max-width:330px;background:rgba(4,7,6,.72);
   border:1px solid rgba(255,255,255,.14);border-top:2px solid var(--gold);
-  padding:16px;margin-bottom:10px;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);}
+  padding:11px 12px;margin-bottom:8px;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);}
 /* --muted is rgba(255,255,255,.28) — far too faint for a field label over the
    artwork. These need to read at a glance, so they get near-full cream. */
-.s-lbl{font-weight:700;font-size:11px;letter-spacing:.28em;color:rgba(237,230,213,.82);
-  text-transform:uppercase;margin-bottom:8px;}
+.s-lbl{font-weight:700;font-size:9.5px;letter-spacing:.26em;color:rgba(237,230,213,.82);
+  text-transform:uppercase;margin-bottom:6px;}
 .s-input{width:100%;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.2);
-  color:var(--cream);font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:600;
-  padding:11px 14px;outline:none;transition:border-color .2s;border-radius:0;-webkit-appearance:none;}
+  color:var(--cream);font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:600;
+  padding:8px 11px;outline:none;transition:border-color .2s;border-radius:0;-webkit-appearance:none;}
 .s-input:focus{border-color:var(--gold);}
 .s-input::placeholder{color:rgba(255,255,255,.38);}
-.s-modes{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:360px;margin-bottom:10px;}
+.s-modes{display:grid;grid-template-columns:1fr 1fr;gap:7px;width:100%;max-width:330px;margin-bottom:8px;}
 .s-mode{background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.1);
-  color:rgba(255,255,255,.38);font-family:'Bebas Neue',sans-serif;font-size:20px;
-  letter-spacing:.1em;padding:14px 10px;cursor:pointer;text-align:center;transition:all .18s;}
+  color:rgba(255,255,255,.38);font-family:'Bebas Neue',sans-serif;font-size:16px;
+  letter-spacing:.1em;padding:9px 8px;cursor:pointer;text-align:center;transition:all .18s;}
 .s-mode.on{border-color:var(--gold);color:var(--cream);background:rgba(200,168,75,.08);}
-.s-mode-sub{font-family:'Barlow Condensed',sans-serif;font-weight:400;font-size:9px;
-  letter-spacing:.06em;color:rgba(255,255,255,.25);margin-top:3px;}
+.s-mode-sub{font-family:'Barlow Condensed',sans-serif;font-weight:400;font-size:8px;
+  letter-spacing:.05em;color:rgba(255,255,255,.3);margin-top:2px;}
 .s-mode.on .s-mode-sub{color:var(--gdim);}
 /* Was a flat red parallelogram (skewed clip-path) — reads cheap next to the rest
    of the board. Square, banded, with a gold hairline to match the panel edge. */
-.s-deploy{width:100%;max-width:360px;color:var(--cream);cursor:pointer;
-  font-family:'Bebas Neue',sans-serif;font-size:25px;letter-spacing:.26em;
-  padding:15px 16px;position:relative;
+.s-deploy{width:100%;max-width:330px;color:var(--cream);cursor:pointer;
+  font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.24em;
+  padding:10px 14px;position:relative;
   background:linear-gradient(180deg,#a83224 0%,#8f2419 55%,#731a11 100%);
   border:1px solid rgba(200,168,75,.55);
   border-top-color:rgba(214,186,110,.85);
