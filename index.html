@@ -47,16 +47,58 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 .screen.active{display:flex;}
 
 /* ══════════ SETUP ══════════ */
+/* The flat composite bitmap is gone — cloud and flags are now real elements in
+   .s-bg, placed against the viewport. This just supplies the base tone and a
+   vignette that sinks the corners so the artwork reads against the UI. */
 #setup{align-items:center;justify-content:center;padding:24px 20px;gap:0;
+  position:relative;overflow:hidden;
   background:
-    /* Lighter than the .86 used to bury the old baked-in wordmark. The artwork is
-       now flat cream with no text, so this only needs to hold the board's dark
-       tone and keep the cream title readable — the flags stay visible as colour. */
-    linear-gradient(180deg, rgba(6,10,8,.78) 0%, rgba(6,10,8,.70) 42%, rgba(4,7,5,.92) 100%),
-    url('bg-title.png');
-  background-size:cover;
-  background-position:center;
-  background-repeat:no-repeat;}
+    radial-gradient(ellipse 120% 80% at 50% 34%, rgba(46,32,18,.55) 0%, transparent 62%),
+    linear-gradient(180deg, #0d1310 0%, #0a0f0c 45%, #060907 100%);}
+
+/* ── Composited title backdrop ── */
+.s-bg{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+/* Scrim over the artwork only: the cloud stays bright at the top where there is
+   no UI, then sinks so the call-sign panel and mode buttons sit on quiet ground.
+   Without this the cloud's brightest region lands right under the wordmark. */
+.s-bg::after{content:'';position:absolute;inset:0;z-index:1;
+  background:linear-gradient(180deg,
+    transparent 0%, rgba(6,9,7,.30) 30%, rgba(6,9,7,.74) 52%,
+    rgba(6,9,7,.88) 70%, rgba(6,9,7,.94) 100%);}
+/* Everything after .s-bg in the DOM stacks above it. */
+#setup > *:not(.s-bg){position:relative;z-index:1;}
+
+.s-cloud{position:absolute;z-index:0;left:50%;top:34%;transform:translate(-50%,-50%);
+  /* Sized off the smaller axis so a short phone doesn't get a cloud that
+     swallows the panel, and a tall one doesn't get a postage stamp. */
+  width:clamp(230px, min(78vw, 46vh), 430px);
+  opacity:.52;filter:saturate(.85) contrast(1.06);
+  animation:cloudRise 14s ease-in-out infinite;}
+
+/* Above the scrim — the scrim exists to calm the cloud, not the flags. */
+.s-flag{position:absolute;z-index:2;width:clamp(44px, 14vw, 82px);
+  opacity:.26;filter:saturate(.8);
+  animation:flagDrift 18s ease-in-out infinite;}
+/* Ringed around the panel: two high, two at the waist, two low. The waist pair
+   sit partly off-screen so the composition reads as a field, not a grid. */
+.f-usa{top:5%;   left:5%;}
+.f-ru { top:8%;   right:6%;  animation-delay:-3s;}
+.f-il { top:39%;  left:-5%;  animation-delay:-6s;}
+.f-cn { top:36%;  right:-6%; animation-delay:-9s;}
+.f-tw { bottom:9%; left:7%;  animation-delay:-12s;}
+.f-ir { bottom:6%; right:5%; animation-delay:-15s;}
+
+@keyframes cloudRise{
+  0%,100%{transform:translate(-50%,-50%) scale(1);}
+  50%    {transform:translate(-50%,-53%) scale(1.035);}
+}
+@keyframes flagDrift{
+  0%,100%{transform:translateY(0) rotate(0deg);}
+  50%    {transform:translateY(-9px) rotate(1.4deg);}
+}
+@media (prefers-reduced-motion:reduce){
+  .s-cloud,.s-flag{animation:none;}
+}
 
 .s-logo-svg{
   width:min(300px, 80vw);
@@ -803,6 +845,18 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
       <line x1="110" y1="110" x2="85" y2="105"/>
     </g>
   </svg>
+
+  <!-- Composited backdrop: cloud + six flags placed relative to the viewport
+       rather than baked into one bitmap. Decorative only. -->
+  <div class="s-bg" aria-hidden="true">
+    <img class="s-cloud"           src="art/cloud.webp"    alt="">
+    <img class="s-flag f-usa" src="art/flag-usa.webp" alt="">
+    <img class="s-flag f-ru"  src="art/flag-ru.webp"  alt="">
+    <img class="s-flag f-il"  src="art/flag-il.webp"  alt="">
+    <img class="s-flag f-cn"  src="art/flag-cn.webp"  alt="">
+    <img class="s-flag f-tw"  src="art/flag-tw.webp"  alt="">
+    <img class="s-flag f-ir"  src="art/flag-ir.webp"  alt="">
+  </div>
 
   <div class="s-title">
     <div class="s-title-main">WORLD WAR 4</div>
