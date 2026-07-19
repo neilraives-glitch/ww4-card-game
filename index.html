@@ -81,14 +81,19 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 /* Height-driven, so the cloud spans that full band. It is near-square (352x359),
    so filling ~700px of height overflows 390px of width — #splash clips it, which
    crops the cap's outer edges evenly and reads as the cloud filling the screen. */
-#splash .s-cloud{top:50%;height:100%;width:auto;max-width:none;opacity:.9;}
+/* 88% rather than filling the band — less of the cap gets cropped, so the
+   silhouette reads as a mushroom instead of a wall of smoke. */
+#splash .s-cloud{top:46%;height:88%;width:auto;max-width:none;opacity:.88;}
 #splash .s-flags img{width:clamp(50px, 16vw, 92px);}
+/* Dropped below the hero's midline so the columns flank the stem rather than
+   overlapping the cap — the cloud narrows there, leaving real open space. */
+#splash .s-flags{top:64%;}
 /* The strait now lives inside the hero, so it centres on the same midline as the
    cloud and the flag columns by construction, and paints over the cloud's waist
    (z-index 1) instead of being buried behind it. Wider than the viewport so the
    coast runs off both edges rather than floating. */
 #splash .s-hormuz,#splash .s-hormuz-line{
-  top:50%;left:50%;transform:translate(-50%,-50%);
+  top:63%;left:60%;transform:translate(-50%,-50%);
   width:clamp(460px, 165vw, 1200px);max-width:none;z-index:1;}
 #splash .s-hormuz{opacity:.50;}
 #splash .s-hormuz-line{opacity:.72;}
@@ -147,8 +152,11 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 /* Flag columns flank the wordmark — three a side, west vs east. */
 .s-flags{position:absolute;top:50%;transform:translateY(-50%);
   display:flex;flex-direction:column;gap:clamp(6px,2.2vw,14px);z-index:2;}
-.s-flags.west{left:0;}
-.s-flags.east{right:0;}
+/* The middle flag's margin widens the column, and flex's default cross-axis
+   alignment left-aligns every child inside it — which left the east column's
+   flags 12px shy of the edge while west sat flush. Anchor each to its own side. */
+.s-flags.west{left:0;align-items:flex-start;}
+.s-flags.east{right:0;align-items:flex-end;}
 .s-flags img{width:clamp(48px, 16vw, 88px);height:auto;display:block;
   opacity:1;filter:saturate(1.02) drop-shadow(0 3px 11px rgba(0,0,0,.8));
   animation:flagDrift 18s ease-in-out infinite;}
