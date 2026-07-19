@@ -1067,12 +1067,12 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 <script>
 /* ─── NATIONS as suits ─── */
 const NATIONS = [
-  {code:'usa', name:'USA', ability:'FIRST STRIKE', abilityDesc:'Auto-wins same-rank clashes'},
-  {code:'cn',  name:'CHINA'},
+  {code:'usa', name:'USA',    ability:'FIRST STRIKE', abilityDesc:'Auto-wins same-rank clashes'},
+  {code:'cn',  name:'CHINA',  ability:'MASS MOBILIZATION', abilityDesc:'Winning seizes 2 cards from the enemy deck'},
   {code:'ru',  name:'RUSSIA', ability:'FORTIFY', abilityDesc:'Only 2 antes needed in World War 4'},
-  {code:'ir',  name:'IRAN'},
-  {code:'il',  name:'ISRAEL'},
-  {code:'tw',  name:'TAIWAN'},
+  {code:'ir',  name:'IRAN',   ability:'ASYMMETRIC', abilityDesc:'A 6 or lower beats a J, Q, K or A'},
+  {code:'il',  name:'ISRAEL', ability:'IRON DOME', abilityDesc:'Cancels the enemy nation ability this round'},
+  {code:'tw',  name:'TAIWAN', ability:'CHOKEPOINT', abilityDesc:'Same-rank clash re-flips instead of going to war'},
 ];
 const RANKS = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
 const VAL   = {2:2,3:3,4:4,5:5,6:6,7:7,8:8,9:9,10:10,J:11,Q:12,K:13,A:14};
@@ -1509,6 +1509,43 @@ function doFlip(){
   G.players.forEach((p,idx)=>{const c=drawTop(p);if(!c){anyOut=true;return;}G.table.push({idx,card:c});});
   if(anyOut){checkGameOver();return;}render();setTimeout(resolveFlip,420);
 }
+/* ── NATION ABILITIES ──
+   Resolution order is explicit and matters:
+     1. ISRAEL  IRON DOME    cancels the OTHER team's abilities for the round
+     2. TAIWAN  CHOKEPOINT   a clash re-flips instead of escalating to war
+     3. USA     FIRST STRIKE auto-wins a lone clash
+     4. IRAN    ASYMMETRIC   a low card beats a face card, before totals count
+     5. RUSSIA  FORTIFY      halves the ante on a tie
+     6. CHINA   MASS MOB.    seizes enemy cards after a win
+   Iron Dome is evaluated first so it can suppress any of the others. If both
+   sides field Israel the domes cancel each other and no ability fires. */
+function abilityState(t){
+  const on={a:new Set(),b:new Set()};
+  t.forEach(e=>{ if(!e.card.joker) on[G.players[e.idx].team].add(e.card.nation); });
+  // Your Israel domes THEM, not you.
+  const domed={a:on.b.has('il'), b:on.a.has('il')};
+  return {on, domed, live:tm=>!domed[tm]};
+}
+/* CHINA — MASS MOBILIZATION: a win with China on the table pulls 2 cards off
+   the losing side. Sourced from their deck, since the pot already goes to the
+   winner in full and there is nothing "extra" left in it to give. */
+function chinaSeize(wt,t,ab){
+  if(!ab.live(wt)||!ab.on[wt].has('cn')) return 0;
+  const winners=G.players.filter(p=>p.team===wt);
+  const losers=G.players.filter(p=>p.team!==wt);
+  if(!winners.length) return 0;
+  let taken=0;
+  for(let i=0;i<2;i++){
+    const src=losers.find(p=>p.deck.length||p.won.length);
+    if(!src) break;
+    const c=drawTop(src);           // handles the won->deck reshuffle
+    if(!c) break;
+    winners[0].won.push(c); taken++;
+  }
+  return taken;
+}
+function seizeMsg(n){ return n?` 🇨🇳 MASS MOBILIZATION seizes ${n}.`:''; }
+
 function resolveFlip(){
   const t=G.table;
   if(!t||!t.length) return; // guard against stale calls
@@ -1517,37 +1554,57 @@ function resolveFlip(){
 
   if(aJ&&bJ){
     toPot(t.map(e=>e.card));G.phase='ww4ante';G.ante=[];G.table=[];
+    G.fortifyTeams=new Set();   // no tie involved; don't carry a stale flag
     triggerWW4Explosion(()=>{
       render();
       openResult('war','WORLD WAR 4','Both Jokers — MAD! Lay 4 antes.',t,'',()=>{render();});
     });
     return;
   }
+  const ab=abilityState(t);
+  const domeMsg=(wt)=>ab.domed[wt==='a'?'b':'a']?' 🇮🇱 IRON DOME held.':'';
+
   if(aJ||bJ){
     const wt=aJ?'a':'b';
     const winCards=t.filter(e=>G.players[e.idx].team===wt).map(e=>e.card);
     const mult=coalitionMultiplier(winCards);
-    awardPot(wt,t.map(e=>e.card),mult);G.table=[];
+    awardPot(wt,t.map(e=>e.card),mult);
+    const seized=chinaSeize(wt,t,ab);
+    G.table=[];
     const bonusMsg=mult>1?' 🌐 Coalition bonus!':'';
-    openResult(wt==='a'?'win':'lose',wt==='a'?'VICTORY':'DEFEAT',`Joker — auto win${bonusMsg}`,t,wt,()=>{nextRound();});
+    openResult(wt==='a'?'win':'lose',wt==='a'?'VICTORY':'DEFEAT',`Joker — auto win${bonusMsg}${seizeMsg(seized)}`,t,wt,()=>{nextRound();});
     return;
   }
   const clashes=getClashes(t);
   if(clashes.length>0){
-    // ── USA ability: FIRST STRIKE — auto-win a same-rank clash if exactly one side holds USA
     if(clashes.length===1){
       const [i1,i2]=clashes[0];
       const c1=t.find(e=>e.idx===i1).card, c2=t.find(e=>e.idx===i2).card;
-      const usa1=c1.nation==='usa', usa2=c2.nation==='usa';
+      const t1=G.players[i1].team, t2=G.players[i2].team;
+
+      // ── TAIWAN: CHOKEPOINT — de-escalate. Cards go to the pot and everyone
+      //    flips again; no antes are laid, denying the pot-building a war gives.
+      const tw1=c1.nation==='tw'&&ab.live(t1), tw2=c2.nation==='tw'&&ab.live(t2);
+      if(tw1||tw2){
+        toPot(t.map(e=>e.card));G.table=[];G.phase='flip';
+        render();
+        openResult('war','CHOKEPOINT','🇹🇼 Taiwan blocks the escalation — flip again, no antes.',t,'',()=>{render();});
+        return;
+      }
+
+      // ── USA: FIRST STRIKE — auto-win when exactly one side holds USA.
+      const usa1=c1.nation==='usa'&&ab.live(t1), usa2=c2.nation==='usa'&&ab.live(t2);
       if(usa1!==usa2){
-        const wt=G.players[usa1?i1:i2].team;
+        const wt=usa1?t1:t2;
         const winCards=t.filter(e=>G.players[e.idx].team===wt).map(e=>e.card);
         const mult=coalitionMultiplier(winCards);
-        toPot(t.map(e=>e.card));G.table=[];
+        toPot(t.map(e=>e.card));
         awardPot(wt,[],mult);
+        const seized=chinaSeize(wt,t,ab);
+        G.table=[];
         const bonusMsg=mult>1?' 🌐 Coalition bonus!':'';
         openResult(wt==='a'?'win':'lose',wt==='a'?'VICTORY':'DEFEAT',
-          `⚡ USA FIRST STRIKE — auto-wins the clash${bonusMsg}`,t,wt,()=>{nextRound();});
+          `⚡ USA FIRST STRIKE — auto-wins the clash${bonusMsg}${seizeMsg(seized)}`,t,wt,()=>{nextRound();});
         return;
       }
     }
@@ -1558,11 +1615,32 @@ function resolveFlip(){
     });
     return;
   }
+
+  // ── IRAN: ASYMMETRIC — a 6 or lower defeats a J/Q/K/A outright, decided
+  //    before totals are compared. If both sides qualify the upsets cancel.
+  const iranHits=tm=>ab.live(tm)
+    && t.some(e=>G.players[e.idx].team===tm && e.card.nation==='ir' && e.card.v<=6)
+    && t.some(e=>G.players[e.idx].team!==tm && e.card.v>=11);
+  const aIr=iranHits('a'), bIr=iranHits('b');
+  if(aIr!==bIr){
+    const wt=aIr?'a':'b';
+    const winCards=t.filter(e=>G.players[e.idx].team===wt).map(e=>e.card);
+    const mult=coalitionMultiplier(winCards);
+    awardPot(wt,t.map(e=>e.card),mult);
+    const seized=chinaSeize(wt,t,ab);
+    G.table=[];
+    const bonusMsg=mult>1?' 🌐 Coalition bonus!':'';
+    openResult(wt==='a'?'win':'lose',wt==='a'?'VICTORY':'DEFEAT',
+      `🇮🇷 ASYMMETRIC — the small card takes it${bonusMsg}${seizeMsg(seized)}`,t,wt,()=>{nextRound();});
+    return;
+  }
+
   let aT=0,bT=0;
   t.forEach(e=>{if(G.players[e.idx].team==='a') aT+=e.card.v; else bT+=e.card.v;});
   if(aT===bT){
-    // ── RUSSIA ability: FORTIFY — team holding a Russia card in the tie lays only 2 antes
-    G.fortifyTeams=new Set(t.filter(e=>e.card.nation==='ru').map(e=>G.players[e.idx].team));
+    // ── RUSSIA: FORTIFY — a team holding Russia in the tie lays only 2 antes.
+    G.fortifyTeams=new Set(t.filter(e=>e.card.nation==='ru'&&ab.live(G.players[e.idx].team))
+                            .map(e=>G.players[e.idx].team));
     toPot(t.map(e=>e.card));G.phase='ww4ante';G.ante=[];G.table=[];
     triggerWW4Explosion(()=>{
       render();
@@ -1574,9 +1652,11 @@ function resolveFlip(){
   const wt=aT>bT?'a':'b';
   const winCards=t.filter(e=>G.players[e.idx].team===wt).map(e=>e.card);
   const mult=coalitionMultiplier(winCards);
-  awardPot(wt,t.map(e=>e.card),mult);G.table=[];
+  awardPot(wt,t.map(e=>e.card),mult);
+  const seized=chinaSeize(wt,t,ab);
+  G.table=[];
   const bonusMsg=mult>1?' · 🌐 Coalition bonus!':'';
-  openResult(wt==='a'?'win':'lose',wt==='a'?'VICTORY':'DEFEAT',`${aT} vs ${bT}${bonusMsg}`,t,wt,()=>{nextRound();});
+  openResult(wt==='a'?'win':'lose',wt==='a'?'VICTORY':'DEFEAT',`${aT} vs ${bT}${bonusMsg}${domeMsg(wt)}${seizeMsg(seized)}`,t,wt,()=>{nextRound();});
 }
 function getClashes(table){
   const cl=[];

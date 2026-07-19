@@ -27,12 +27,36 @@ Service workers require `http://`, not `file://`, so opening `index.html` direct
 
 For multiplayer, you'll need your own Firebase project — the `firebaseConfig` object is near the top of `ww4-multiplayer.html`'s script.
 
-## Special abilities (current)
+## Special abilities
 
-- **USA — First Strike**: auto-wins a same-rank clash if only one side holds a USA card
-- **Russia — Fortify**: only lays 2 antes (instead of 4) in a World War 4 tie if a Russia card is involved
+All six nations have one. Both `index.html` and `ww4-multiplayer.html` implement
+the same set — metadata lives in the `NATIONS` array near the top of each script.
 
-Nation ability metadata lives in the `NATIONS` array near the top of the game script in `index.html`.
+| Nation | Ability | Effect |
+|---|---|---|
+| 🇺🇸 USA | **First Strike** | Auto-wins a lone same-rank clash if only one side holds USA |
+| 🇷🇺 Russia | **Fortify** | Lays 2 antes instead of 4 in a World War 4 tie |
+| 🇨🇳 China | **Mass Mobilization** | Winning a round seizes 2 cards from the enemy's stock |
+| 🇮🇷 Iran | **Asymmetric** | A 6 or lower beats a J, Q, K or A outright |
+| 🇮🇱 Israel | **Iron Dome** | Cancels the *opposing* side's ability for the round |
+| 🇹🇼 Taiwan | **Chokepoint** | A same-rank clash re-flips instead of escalating to war |
+
+**Resolution order matters** and is encoded explicitly in `resolveFlip`
+(`resolveFlipHost` in multiplayer):
+
+1. **Iron Dome** — evaluated first, so it can suppress any of the others.
+   Both sides fielding Israel cancels out and no ability fires.
+2. **Chokepoint** — de-escalates before a clash can become a war
+3. **First Strike** — resolves the clash if it wasn't de-escalated
+4. **Asymmetric** — decided before totals are compared
+5. **Fortify** — applies once a tie sends the round to war
+6. **Mass Mobilization** — applies after a win is settled
+
+## Coalition bonus
+
+A winning team whose flipped cards are all from one bloc (west: USA/Israel/Taiwan,
+east: Russia/China/Iran) scores a multiplier — 1.25x for two aligned cards, 2x for
+three or more. Jokers break alignment.
 
 ## Deploying
 

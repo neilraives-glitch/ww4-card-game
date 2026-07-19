@@ -1130,6 +1130,36 @@ async function doMyFlipMini(gs){
 /* ══════════════════════════════════════════
    HOST RESOLUTION LOGIC
 ══════════════════════════════════════════ */
+/* ── NATION ABILITIES (mirrors index.html; see the note there for ordering) ──
+   1 ISRAEL IRON DOME  2 TAIWAN CHOKEPOINT  3 USA FIRST STRIKE
+   4 IRAN ASYMMETRIC   5 RUSSIA FORTIFY     6 CHINA MASS MOBILIZATION */
+function abilityStateHost(t,getTeam){
+  const on={a:new Set(),b:new Set()};
+  t.forEach(e=>{ if(!e.card.joker) on[getTeam(e.pid)].add(e.card.nation); });
+  const domed={a:on.b.has('il'), b:on.a.has('il')};   // your Israel domes THEM
+  return {on, domed, live:tm=>!domed[tm]};
+}
+/* CHINA — MASS MOBILIZATION: pull 2 cards off the losing side's stock into the
+   winners' won pile. Mutates the decks/won maps the caller is about to persist. */
+function chinaSeizeHost(wt,ab,decks,won,getTeam){
+  if(!ab.live(wt)||!ab.on[wt].has('cn')) return 0;
+  const winners=G.playerOrder.filter(pid=>getTeam(pid)===wt);
+  const losers =G.playerOrder.filter(pid=>getTeam(pid)!==wt);
+  if(!winners.length) return 0;
+  const to=winners[0];
+  let taken=0;
+  for(let i=0;i<2;i++){
+    const src=losers.find(pid=>(decks[pid]&&decks[pid].length)||(won[pid]&&won[pid].length));
+    if(!src) break;
+    if(!decks[src].length && won[src].length){ decks[src]=shuffle(won[src]); won[src]=[]; }
+    const c=decks[src].shift();
+    if(!c) break;
+    won[to]=[...(won[to]||[]),c]; taken++;
+  }
+  return taken;
+}
+function seizeMsgHost(n){ return n?` 🇨🇳 MASS MOBILIZATION seizes ${n}.`:''; }
+
 async function resolveFlipHost(tableMap, gs){
   if(!isHost) return;
   const t = Object.entries(tableMap).map(([pid,card])=>({pid, card, idx:G.playerOrder.indexOf(pid)}));
@@ -1145,6 +1175,7 @@ async function resolveFlipHost(tableMap, gs){
   G.playerOrder.forEach(pid=>{ decks[pid]=[...(gs.decks?.[pid]||[])]; won[pid]=[...(gs.won?.[pid]||[])]; });
 
   const allCards = t.map(e=>e.card);
+  const ab = abilityStateHost(t,getTeam);
 
   if(aJ&&bJ){
     pot.push(...allCards);
@@ -1161,7 +1192,8 @@ async function resolveFlipHost(tableMap, gs){
     const all=[...pot,...allCards]; scores[wt]+=(mult>1?Math.round(all.length*mult):all.length);
     distributeWon(won,decks,wt,all);
     pot=[];
-    checkGameOverHost(scores,decks,won,wt,`Joker — auto win${mult>1?' · 🌐 Coalition bonus!':''}`,allCards);
+    const seized=chinaSeizeHost(wt,ab,decks,won,getTeam);
+    checkGameOverHost(scores,decks,won,wt,`Joker — auto win${mult>1?' · 🌐 Coalition bonus!':''}${seizeMsgHost(seized)}`,allCards);
     return;
   }
   const clashes = getClashesFromTable(t, getTeam);
@@ -1172,15 +1204,25 @@ async function resolveFlipHost(tableMap, gs){
       const [p1,p2]=clashes[0];
       const c1=t.find(e=>e.pid===p1)?.card, c2=t.find(e=>e.pid===p2)?.card;
       if(c1&&c2){
-        const usa1=c1.nation==='usa', usa2=c2.nation==='usa';
+        const tm1=getTeam(p1), tm2=getTeam(p2);
+        // ── TAIWAN: CHOKEPOINT — cards go to the pot and everyone flips again,
+        //    no antes laid, denying the pot-building a war would give.
+        if((c1.nation==='tw'&&ab.live(tm1))||(c2.nation==='tw'&&ab.live(tm2))){
+          pot.push(...allCards);
+          await writeGameState({phase:'flip',pot,scores,decks,won,ante:[],miniPairs:[],table:{},fortifyTeams:[],
+            resultShown:{type:'war',title:'CHOKEPOINT',sub:'🇹🇼 Taiwan blocks the escalation — flip again, no antes.',winTeam:'',explosion:false}});
+          return;
+        }
+        const usa1=c1.nation==='usa'&&ab.live(tm1), usa2=c2.nation==='usa'&&ab.live(tm2);
         if(usa1!==usa2){
-          const wt=getTeam(usa1?p1:p2);
+          const wt=usa1?tm1:tm2;
           const winCards=t.filter(e=>getTeam(e.pid)===wt).map(e=>e.card);
           const mult=coalitionMultiplier(winCards);
           const all=[...pot,...allCards]; scores[wt]+=(mult>1?Math.round(all.length*mult):all.length);
           distributeWon(won,decks,wt,all); pot=[];
+          const seized=chinaSeizeHost(wt,ab,decks,won,getTeam);
           checkGameOverHost(scores,decks,won,wt,
-            `⚡ USA FIRST STRIKE — auto-wins the clash${mult>1?' · 🌐 Coalition bonus!':''}`,allCards);
+            `⚡ USA FIRST STRIKE — auto-wins the clash${mult>1?' · 🌐 Coalition bonus!':''}${seizeMsgHost(seized)}`,allCards);
           return;
         }
       }
@@ -1190,13 +1232,31 @@ async function resolveFlipHost(tableMap, gs){
       resultShown:{type:'war',title:'WORLD WAR 4',sub:'Same rank! 2 antes, 1 flip decides all.',winTeam:'',explosion:true}});
     return;
   }
+  // ── IRAN: ASYMMETRIC — a 6 or lower beats a J/Q/K/A outright, decided before
+  //    totals. Both sides qualifying cancels out.
+  const iranHits=tm=>ab.live(tm)
+    && t.some(e=>getTeam(e.pid)===tm && e.card.nation==='ir' && e.card.v<=6)
+    && t.some(e=>getTeam(e.pid)!==tm && e.card.v>=11);
+  const aIr=iranHits('a'), bIr=iranHits('b');
+  if(aIr!==bIr){
+    const wt=aIr?'a':'b';
+    const winCards=t.filter(e=>getTeam(e.pid)===wt).map(e=>e.card);
+    const mult=coalitionMultiplier(winCards);
+    const all=[...pot,...allCards]; scores[wt]+=(mult>1?Math.round(all.length*mult):all.length);
+    distributeWon(won,decks,wt,all); pot=[];
+    const seized=chinaSeizeHost(wt,ab,decks,won,getTeam);
+    checkGameOverHost(scores,decks,won,wt,
+      `🇮🇷 ASYMMETRIC — the small card takes it${mult>1?' · 🌐 Coalition bonus!':''}${seizeMsgHost(seized)}`,allCards);
+    return;
+  }
+
   let aT=0,bT=0;
   t.forEach(e=>{ if(getTeam(e.pid)==='a') aT+=e.card.joker?100:e.card.v; else bT+=e.card.joker?100:e.card.v; });
   if(aT===bT){
     // ── RUSSIA ability: FORTIFY — a team holding a Russia card in the tie lays
     //    only 2 antes. Persisted as an array: Firebase cannot store a Set, and
     //    pushWW4Ante reads it back on the host to size each player's draw.
-    const fortifyTeams=[...new Set(t.filter(e=>e.card.nation==='ru').map(e=>getTeam(e.pid)))];
+    const fortifyTeams=[...new Set(t.filter(e=>e.card.nation==='ru'&&ab.live(getTeam(e.pid))).map(e=>getTeam(e.pid)))];
     pot.push(...allCards);
     const fortifyMsg=fortifyTeams.length?' 🛡 RUSSIA FORTIFY reduces their antes to 2.':'';
     await writeGameState({phase:'ww4ante',pot,scores,decks,won,ante:[],miniPairs:[],table:{},fortifyTeams,
@@ -1208,7 +1268,8 @@ async function resolveFlipHost(tableMap, gs){
   const mult=coalitionMultiplier(winCards);
   const all=[...pot,...allCards]; scores[wt]+=(mult>1?Math.round(all.length*mult):all.length);
   distributeWon(won,decks,wt,all); pot=[];
-  checkGameOverHost(scores,decks,won,wt,`${aT} vs ${bT}${mult>1?' · 🌐 Coalition bonus!':''}`,allCards);
+  const seized=chinaSeizeHost(wt,ab,decks,won,getTeam);
+  checkGameOverHost(scores,decks,won,wt,`${aT} vs ${bT}${mult>1?' · 🌐 Coalition bonus!':''}${seizeMsgHost(seized)}`,allCards);
 }
 
 async function pushWW4Ante(gs){
