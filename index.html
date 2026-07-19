@@ -1089,7 +1089,10 @@ function coalitionMultiplier(cards){
   if(cards.some(c=>c.joker)) return 1;   // jokers break alignment
   const blocs=cards.map(c=>blocOf(c.nation));
   if(blocs.some(b=>b===null)) return 1;
-  return blocs.every(b=>b===blocs[0]) ? 1.25 : 1;
+  if(!blocs.every(b=>b===blocs[0])) return 1;
+  // Matches multiplayer, which is the canonical rule: a wider aligned coalition
+  // pays double. Singleplayer previously capped at 1.25x however many aligned.
+  return cards.length>=3 ? 2 : 1.25;
 }
 
 function mkDeck(){

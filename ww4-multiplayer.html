@@ -641,8 +641,12 @@ const db = getDatabase(app);
    CONSTANTS
 ══════════════════════════════════════════ */
 const NATIONS = [
-  {code:'usa',name:'USA'},{code:'cn',name:'CHINA'},{code:'ru',name:'RUSSIA'},
-  {code:'ir',name:'IRAN'},{code:'il',name:'ISRAEL'},{code:'tw',name:'TAIWAN'}
+  {code:'usa',name:'USA', ability:'FIRST STRIKE', abilityDesc:'Auto-wins same-rank clashes'},
+  {code:'cn', name:'CHINA'},
+  {code:'ru', name:'RUSSIA', ability:'FORTIFY', abilityDesc:'Only 2 antes needed in World War 4'},
+  {code:'ir', name:'IRAN'},
+  {code:'il', name:'ISRAEL'},
+  {code:'tw', name:'TAIWAN'}
 ];
 const RANKS = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
 const VALS  = {2:2,3:3,4:4,5:5,6:6,7:7,8:8,9:9,10:10,J:11,Q:12,K:13,A:14};
@@ -1144,7 +1148,9 @@ async function resolveFlipHost(tableMap, gs){
 
   if(aJ&&bJ){
     pot.push(...allCards);
-    await writeGameState({phase:'ww4ante',pot,scores,decks,won,ante:[],miniPairs:[],table:{},
+    // fortifyTeams cleared explicitly: a mutual-joker WW4 involves no Russia tie,
+    // and a stale value left in room state would halve someone's antes for free.
+    await writeGameState({phase:'ww4ante',pot,scores,decks,won,ante:[],miniPairs:[],table:{},fortifyTeams:[],
       resultShown:{type:'war',title:'WORLD WAR 4',sub:'Both Jokers — MAD! Lay 4 antes.',winTeam:'',explosion:true}});
     return;
   }
@@ -1160,6 +1166,25 @@ async function resolveFlipHost(tableMap, gs){
   }
   const clashes = getClashesFromTable(t, getTeam);
   if(clashes.length>0){
+    // ── USA ability: FIRST STRIKE — auto-wins a lone same-rank clash when only
+    //    one side holds a USA card. Ported from singleplayer.
+    if(clashes.length===1){
+      const [p1,p2]=clashes[0];
+      const c1=t.find(e=>e.pid===p1)?.card, c2=t.find(e=>e.pid===p2)?.card;
+      if(c1&&c2){
+        const usa1=c1.nation==='usa', usa2=c2.nation==='usa';
+        if(usa1!==usa2){
+          const wt=getTeam(usa1?p1:p2);
+          const winCards=t.filter(e=>getTeam(e.pid)===wt).map(e=>e.card);
+          const mult=coalitionMultiplier(winCards);
+          const all=[...pot,...allCards]; scores[wt]+=(mult>1?Math.round(all.length*mult):all.length);
+          distributeWon(won,decks,wt,all); pot=[];
+          checkGameOverHost(scores,decks,won,wt,
+            `⚡ USA FIRST STRIKE — auto-wins the clash${mult>1?' · 🌐 Coalition bonus!':''}`,allCards);
+          return;
+        }
+      }
+    }
     pot.push(...allCards);
     await writeGameState({phase:'mini_ante',pot,scores,decks,won,ante:[],miniPairs:clashes,table:{},
       resultShown:{type:'war',title:'WORLD WAR 4',sub:'Same rank! 2 antes, 1 flip decides all.',winTeam:'',explosion:true}});
@@ -1168,9 +1193,14 @@ async function resolveFlipHost(tableMap, gs){
   let aT=0,bT=0;
   t.forEach(e=>{ if(getTeam(e.pid)==='a') aT+=e.card.joker?100:e.card.v; else bT+=e.card.joker?100:e.card.v; });
   if(aT===bT){
+    // ── RUSSIA ability: FORTIFY — a team holding a Russia card in the tie lays
+    //    only 2 antes. Persisted as an array: Firebase cannot store a Set, and
+    //    pushWW4Ante reads it back on the host to size each player's draw.
+    const fortifyTeams=[...new Set(t.filter(e=>e.card.nation==='ru').map(e=>getTeam(e.pid)))];
     pot.push(...allCards);
-    await writeGameState({phase:'ww4ante',pot,scores,decks,won,ante:[],miniPairs:[],table:{},
-      resultShown:{type:'war',title:'WORLD WAR 4',sub:`Tied at ${aT} — lay 4 antes!`,winTeam:'',explosion:true}});
+    const fortifyMsg=fortifyTeams.length?' 🛡 RUSSIA FORTIFY reduces their antes to 2.':'';
+    await writeGameState({phase:'ww4ante',pot,scores,decks,won,ante:[],miniPairs:[],table:{},fortifyTeams,
+      resultShown:{type:'war',title:'WORLD WAR 4',sub:`Tied at ${aT} — lay 4 antes!${fortifyMsg}`,winTeam:'',explosion:true}});
     return;
   }
   const wt=aT>bT?'a':'b';
@@ -1186,12 +1216,17 @@ async function pushWW4Ante(gs){
   let pot=[...(gs.pot||[])]; let ante=[];
   let decks={}; let won={};
   G.playerOrder.forEach(pid=>{ decks[pid]=[...(gs.decks?.[pid]||[])]; won[pid]=[...(gs.won?.[pid]||[])]; });
+  // RUSSIA FORTIFY: teams flagged at the tie lay 2 antes instead of 4.
+  const fortify=new Set(gs.fortifyTeams||[]);
+  const getTeam=pid=>G.roomData?.players?.[pid]?.team||'a';
   G.playerOrder.forEach(pid=>{
-    const cards=drawNFrom(decks[pid],won[pid],4);
+    const n=fortify.has(getTeam(pid))?2:4;
+    const cards=drawNFrom(decks[pid],won[pid],n);
     pot.push(...cards.drawn); decks[pid]=cards.deck; won[pid]=cards.won;
     ante.push({pid,cards:cards.drawn});
   });
-  await writeGameState({phase:'ww4flip',pot,ante,decks,won,table:{},miniPairs:[],scores:gs.scores,resultShown:null});
+  await writeGameState({phase:'ww4flip',pot,ante,decks,won,table:{},miniPairs:[],scores:gs.scores,
+    fortifyTeams:gs.fortifyTeams||[],resultShown:null});
 }
 
 async function resolveMiniFlipHost(tableMap, gs){
