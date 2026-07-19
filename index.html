@@ -229,6 +229,9 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
   display:none;
   flex-direction:column;align-items:center;
   gap:1px;
+  /* Above .card.ring-win (z-index:5) — the winner's scale-up transform reserves no
+     layout space, so it bleeds over neighbours and was covering the outcome text. */
+  position:relative;z-index:20;
   background:rgba(8,6,2,.7);
   border:1px solid rgba(255,255,255,.1);
   border-radius:8px;
@@ -593,20 +596,59 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
    edges rather than shrinking. Scaling the card variables keeps the whole row
    inside the viewport; the .xl winner card is the main offender. */
 @media (max-width:430px){
-  :root{ --cw-xl:84px; --cw-lg:52px; --cw-md:42px; --cw-sm:35px; --cw-xs:22px; }
-  .xl .cf-rank{font-size:40px;}
-  .xl .cf-word{font-size:12px;}
-  .xl .cf-nation{font-size:9px;}
-  .xl .cff{font-size:11px;}
-  .battle-row{gap:3px;}
-  .table-inner{padding:6px 4px;}
+  /* Portrait phones: stack the battle row instead of laying it out side by side.
+     Horizontally there are only ~370px to share between two cards and the result
+     panel, while ~60% of the table's height went unused. Stacking spends the axis
+     we actually have, so cards get LARGER here than on desktop rather than smaller.
+     DOM order is already opp → center → player, which is the layout we want. */
+  .battle-row{flex-direction:column;gap:2px;}
+  .zone-opp,.zone-player{flex:0 0 auto;gap:4px;}
+  .zone-center{width:100%;}
+  /* Once stacked, the binding constraint is HEIGHT, not width — so derive the card
+     size from the space actually left over rather than guessing width breakpoints.
+     Fixed chrome is ~273px (topbar + both score bars + action rail + gaps) and the
+     battle row's non-card content ~134px (labels + result panel). The two cards
+     together cost ~2.87 widths of height, the winner being scaled 1.06.
+     Solving (100dvh - 407px) / 2.87 gives the largest card that still fits.
+     dvh, not vh, so the mobile URL bar doesn't push the bar under the rail.
+     Width still caps it on very narrow screens via the min() below. */
+  :root{
+    --cw-xl:clamp(64px, min(calc((100dvh - 407px) * 0.348), 34vw), 132px);
+    --cw-lg:calc(var(--cw-xl) * 0.617);
+    --cw-md:calc(var(--cw-xl) * 0.483);
+    --cw-sm:calc(var(--cw-xl) * 0.400);
+    --cw-xs:calc(var(--cw-xl) * 0.250);
+  }
+  .table-inner{padding:6px 8px;gap:4px;}
+  /* Keep the card centered on the axis and put the name/count inline beneath it,
+     so the label costs one short line instead of two. */
+  .pspot-info{flex-direction:row;align-items:baseline;gap:6px;}
+  /* Gentler winner pop in the stacked layout — 1.16 overlapped the result panel
+     vertically. Same effect, less bleed. */
+  .card.ring-win{animation-name:ringWinPulseSm;}
+  .table-result{background:rgba(8,6,2,.92);padding:7px 20px 9px;}
 }
-@media (max-width:360px){
-  :root{ --cw-xl:72px; --cw-lg:45px; --cw-md:36px; --cw-sm:30px; --cw-xs:19px; }
-  .xl .cf-rank{font-size:34px;}
-  .pspot-name{font-size:12px;}
-  .pspot-ct{font-size:13px;}
+@keyframes ringWinPulseSm{
+  0%{box-shadow:0 0 0 0 rgba(200,168,75,0);transform:scale(1);}
+  100%{box-shadow:0 0 0 3px var(--gold),0 0 24px rgba(200,168,75,.85);transform:scale(1.06);}
 }
+/* Very short phones (original SE, older small Androids). Below ~620px the 64px
+   card floor no longer fits the ~407px of fixed chrome, and the bottom score bar
+   slid under the action rail. Reclaim height from the chrome instead of shrinking
+   cards further — that keeps the floor viable and the board readable. */
+@media (max-width:430px) and (max-height:620px){
+  .action-rail{padding:6px 12px 8px;gap:3px;}
+  .flip-btn{font-size:17px;padding:9px;}
+  .status{font-size:9px;}
+  .table-inner{padding:4px 8px;gap:2px;}
+  /* Calibrated against a measured 360x568: chrome 233px (topbar 62 + score bars 88
+     + trimmed rail 71 + padding/gaps 12) plus 137px of non-card battle-row content.
+     Subtracting 384 leaves ~20px of headroom rather than the 8px overflow that
+     384's predecessor produced. */
+  :root{ --cw-xl:clamp(52px, min(calc((100dvh - 384px) * 0.348), 34vw), 132px); }
+}
+/* No further width breakpoints needed — the clamp is driven by available height
+   and capped by 34vw, so it covers small phones and short viewports alike. */
 </style>
 </head>
 <body>
