@@ -58,46 +58,58 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 
 /* ── Composited title backdrop ── */
 .s-bg{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
-/* Scrim over the artwork only: the cloud stays bright at the top where there is
-   no UI, then sinks so the call-sign panel and mode buttons sit on quiet ground.
-   Without this the cloud's brightest region lands right under the wordmark. */
+/* Strait of Hormuz as ground plane, sunk low and wide so the cloud reads as
+   rising off it. Anchored to the hero's vertical centre, not the screen's. */
+.s-hormuz,.s-hormuz-line{position:absolute;left:50%;top:42%;
+  transform:translate(-50%,-50%);
+  width:clamp(340px, 128vw, 900px);max-width:none;}
+.s-hormuz{opacity:.42;}
+.s-hormuz-line{opacity:.50;}
+/* Scrim over the map only — the hero layers above it. */
 .s-bg::after{content:'';position:absolute;inset:0;z-index:1;
   background:linear-gradient(180deg,
-    transparent 0%, rgba(6,9,7,.30) 30%, rgba(6,9,7,.74) 52%,
-    rgba(6,9,7,.88) 70%, rgba(6,9,7,.94) 100%);}
-/* Everything after .s-bg in the DOM stacks above it. */
+    rgba(6,9,7,.30) 0%, rgba(6,9,7,.10) 26%, rgba(6,9,7,.62) 54%,
+    rgba(6,9,7,.90) 74%, rgba(6,9,7,.96) 100%);}
 #setup > *:not(.s-bg){position:relative;z-index:1;}
 
-.s-cloud{position:absolute;z-index:0;left:50%;top:34%;transform:translate(-50%,-50%);
-  /* Sized off the smaller axis so a short phone doesn't get a cloud that
-     swallows the panel, and a tall one doesn't get a postage stamp. */
-  width:clamp(230px, min(78vw, 46vh), 430px);
-  opacity:.52;filter:saturate(.85) contrast(1.06);
-  animation:cloudRise 14s ease-in-out infinite;}
+/* ── Hero: cloud + flags + title, one centred stack ── */
+.s-hero{position:relative;width:100%;max-width:420px;
+  display:flex;align-items:center;justify-content:center;
+  /* Height follows the cloud so the title always lands on its mass. */
+  min-height:clamp(190px, min(58vw, 30vh), 300px);
+  margin-bottom:26px;}
 
-/* Above the scrim — the scrim exists to calm the cloud, not the flags. */
-.s-flag{position:absolute;z-index:2;width:clamp(44px, 14vw, 82px);
-  opacity:.26;filter:saturate(.8);
+.s-cloud{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);
+  width:clamp(210px, min(62vw, 34vh), 340px);
+  opacity:.62;filter:saturate(.88) contrast(1.05);
+  animation:cloudRise 14s ease-in-out infinite;z-index:0;}
+
+/* Flag columns flank the wordmark — three a side, west vs east. */
+.s-flags{position:absolute;top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;gap:clamp(6px,2.2vw,14px);z-index:2;}
+.s-flags.west{left:0;}
+.s-flags.east{right:0;}
+.s-flags img{width:clamp(38px, 12.5vw, 66px);height:auto;display:block;
+  opacity:.88;filter:saturate(.95) drop-shadow(0 2px 8px rgba(0,0,0,.75));
   animation:flagDrift 18s ease-in-out infinite;}
-/* Ringed around the panel: two high, two at the waist, two low. The waist pair
-   sit partly off-screen so the composition reads as a field, not a grid. */
-.f-usa{top:5%;   left:5%;}
-.f-ru { top:8%;   right:6%;  animation-delay:-3s;}
-.f-il { top:39%;  left:-5%;  animation-delay:-6s;}
-.f-cn { top:36%;  right:-6%; animation-delay:-9s;}
-.f-tw { bottom:9%; left:7%;  animation-delay:-12s;}
-.f-ir { bottom:6%; right:5%; animation-delay:-15s;}
+.s-flags.west img:nth-child(2){margin-left:clamp(6px,3vw,18px);}
+.s-flags.east img:nth-child(2){margin-right:clamp(6px,3vw,18px);}
+.s-flags.east img:nth-child(1){animation-delay:-3s;}
+.s-flags.west img:nth-child(2){animation-delay:-6s;}
+.s-flags.east img:nth-child(2){animation-delay:-9s;}
+.s-flags.west img:nth-child(3){animation-delay:-12s;}
+.s-flags.east img:nth-child(3){animation-delay:-15s;}
 
 @keyframes cloudRise{
   0%,100%{transform:translate(-50%,-50%) scale(1);}
   50%    {transform:translate(-50%,-53%) scale(1.035);}
 }
 @keyframes flagDrift{
-  0%,100%{transform:translateY(0) rotate(0deg);}
-  50%    {transform:translateY(-9px) rotate(1.4deg);}
+  0%,100%{transform:translateY(0);}
+  50%    {transform:translateY(-7px);}
 }
 @media (prefers-reduced-motion:reduce){
-  .s-cloud,.s-flag{animation:none;}
+  .s-cloud,.s-flags img{animation:none;}
 }
 
 .s-logo-svg{
@@ -128,9 +140,13 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
    baked into the bitmap, and background-size:cover crops a landscape image on a
    portrait phone — so the baked title was sliced off both edges with no CSS fix
    available. The gradient above now buries it and this renders crisp at any width. */
-.s-title{width:100%;max-width:360px;text-align:center;margin-bottom:26px;}
+/* Sits inside .s-hero, so it is centred on the cloud by construction. The side
+   padding reserves the flag columns' width — without it the wordmark's last
+   glyph runs under the east column. */
+.s-title{position:relative;z-index:3;width:100%;text-align:center;
+  padding:0 clamp(52px, 17vw, 84px);}
 .s-title-main{font-family:'Bebas Neue',sans-serif;
-  font-size:clamp(38px,13vw,62px);line-height:.92;letter-spacing:.06em;
+  font-size:clamp(30px,10.5vw,54px);line-height:.92;letter-spacing:.04em;
   color:var(--cream);text-shadow:0 2px 18px rgba(0,0,0,.9),0 0 42px rgba(192,57,43,.45);}
 .s-title-rule{height:2px;width:64px;margin:9px auto 7px;
   background:linear-gradient(90deg,transparent,var(--gold),transparent);}
@@ -139,15 +155,19 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
   text-transform:uppercase;color:var(--gold);opacity:.92;
   text-shadow:0 1px 10px rgba(0,0,0,.95);}
 
-.s-box{width:100%;max-width:360px;background:rgba(0,0,0,.32);
-  border:1px solid rgba(255,255,255,.1);border-top:2px solid var(--gdim);padding:16px;margin-bottom:10px;}
-.s-lbl{font-weight:700;font-size:10px;letter-spacing:.3em;color:var(--muted);
+/* Opaque enough to sit on the artwork without the map showing through the field. */
+.s-box{width:100%;max-width:360px;background:rgba(4,7,6,.72);
+  border:1px solid rgba(255,255,255,.14);border-top:2px solid var(--gold);
+  padding:16px;margin-bottom:10px;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);}
+/* --muted is rgba(255,255,255,.28) — far too faint for a field label over the
+   artwork. These need to read at a glance, so they get near-full cream. */
+.s-lbl{font-weight:700;font-size:11px;letter-spacing:.28em;color:rgba(237,230,213,.82);
   text-transform:uppercase;margin-bottom:8px;}
-.s-input{width:100%;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.14);
+.s-input{width:100%;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.2);
   color:var(--cream);font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:600;
   padding:11px 14px;outline:none;transition:border-color .2s;border-radius:0;-webkit-appearance:none;}
 .s-input:focus{border-color:var(--gold);}
-.s-input::placeholder{color:rgba(255,255,255,.2);}
+.s-input::placeholder{color:rgba(255,255,255,.38);}
 .s-modes{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:360px;margin-bottom:10px;}
 .s-mode{background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.1);
   color:rgba(255,255,255,.38);font-family:'Bebas Neue',sans-serif;font-size:20px;
@@ -156,10 +176,20 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 .s-mode-sub{font-family:'Barlow Condensed',sans-serif;font-weight:400;font-size:9px;
   letter-spacing:.06em;color:rgba(255,255,255,.25);margin-top:3px;}
 .s-mode.on .s-mode-sub{color:var(--gdim);}
-.s-deploy{width:100%;max-width:360px;background:var(--red);color:var(--cream);border:none;
-  font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.2em;padding:16px;cursor:pointer;
-  clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);transition:all .14s;}
-.s-deploy:active{opacity:.8;transform:scale(.98);}
+/* Was a flat red parallelogram (skewed clip-path) — reads cheap next to the rest
+   of the board. Square, banded, with a gold hairline to match the panel edge. */
+.s-deploy{width:100%;max-width:360px;color:var(--cream);cursor:pointer;
+  font-family:'Bebas Neue',sans-serif;font-size:25px;letter-spacing:.26em;
+  padding:15px 16px;position:relative;
+  background:linear-gradient(180deg,#a83224 0%,#8f2419 55%,#731a11 100%);
+  border:1px solid rgba(200,168,75,.55);
+  border-top-color:rgba(214,186,110,.85);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),
+             inset 0 -2px 0 rgba(0,0,0,.32),
+             0 4px 18px rgba(0,0,0,.5);
+  transition:filter .14s, transform .14s;}
+.s-deploy:hover{filter:brightness(1.1);}
+.s-deploy:active{filter:brightness(.92);transform:translateY(1px);}
 .s-abilities{width:100%;max-width:360px;text-align:center;margin-top:10px;
   font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:.04em;color:rgba(255,255,255,.4);}
 .s-abilities .ab-usa{color:var(--usa-acc);}
@@ -846,22 +876,32 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
     </g>
   </svg>
 
-  <!-- Composited backdrop: cloud + six flags placed relative to the viewport
-       rather than baked into one bitmap. Decorative only. -->
+  <!-- Strait of Hormuz sits behind everything as the ground plane. -->
   <div class="s-bg" aria-hidden="true">
-    <img class="s-cloud"           src="art/cloud.webp"    alt="">
-    <img class="s-flag f-usa" src="art/flag-usa.webp" alt="">
-    <img class="s-flag f-ru"  src="art/flag-ru.webp"  alt="">
-    <img class="s-flag f-il"  src="art/flag-il.webp"  alt="">
-    <img class="s-flag f-cn"  src="art/flag-cn.webp"  alt="">
-    <img class="s-flag f-tw"  src="art/flag-tw.webp"  alt="">
-    <img class="s-flag f-ir"  src="art/flag-ir.webp"  alt="">
+    <img class="s-hormuz"      src="art/hormuz-land.webp" alt="">
+    <img class="s-hormuz-line" src="art/hormuz-line.webp" alt="">
   </div>
 
-  <div class="s-title">
-    <div class="s-title-main">WORLD WAR 4</div>
-    <div class="s-title-rule"></div>
-    <div class="s-title-sub">The Card Game</div>
+  <!-- Cloud, flags and title share one centring context so they cannot drift
+       apart across viewports. Flags split by the game's own blocs: west left,
+       east right. -->
+  <div class="s-hero">
+    <img class="s-cloud" src="art/cloud.webp" alt="" aria-hidden="true">
+    <div class="s-flags west" aria-hidden="true">
+      <img src="art/flag-usa.webp" alt="">
+      <img src="art/flag-il.webp"  alt="">
+      <img src="art/flag-tw.webp"  alt="">
+    </div>
+    <div class="s-flags east" aria-hidden="true">
+      <img src="art/flag-ru.webp" alt="">
+      <img src="art/flag-cn.webp" alt="">
+      <img src="art/flag-ir.webp" alt="">
+    </div>
+    <div class="s-title">
+      <div class="s-title-main">WORLD WAR 4</div>
+      <div class="s-title-rule"></div>
+      <div class="s-title-sub">The Card Game</div>
+    </div>
   </div>
 
   <div class="s-box">
