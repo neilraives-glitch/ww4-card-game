@@ -49,8 +49,11 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 /* ══════════ SETUP ══════════ */
 #setup{align-items:center;justify-content:center;padding:24px 20px;gap:0;
   background:
-    linear-gradient(180deg, rgba(6,10,8,.86) 0%, rgba(6,10,8,.80) 40%, rgba(4,7,5,.96) 100%),
-    url('bg-title.jpg');
+    /* Lighter than the .86 used to bury the old baked-in wordmark. The artwork is
+       now flat cream with no text, so this only needs to hold the board's dark
+       tone and keep the cream title readable — the flags stay visible as colour. */
+    linear-gradient(180deg, rgba(6,10,8,.78) 0%, rgba(6,10,8,.70) 42%, rgba(4,7,5,.92) 100%),
+    url('bg-title.png');
   background-size:cover;
   background-position:center;
   background-repeat:no-repeat;}
@@ -83,14 +86,16 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
    baked into the bitmap, and background-size:cover crops a landscape image on a
    portrait phone — so the baked title was sliced off both edges with no CSS fix
    available. The gradient above now buries it and this renders crisp at any width. */
-.s-title{width:100%;max-width:360px;text-align:center;margin-bottom:22px;}
+.s-title{width:100%;max-width:360px;text-align:center;margin-bottom:26px;}
 .s-title-main{font-family:'Bebas Neue',sans-serif;
   font-size:clamp(38px,13vw,62px);line-height:.92;letter-spacing:.06em;
   color:var(--cream);text-shadow:0 2px 18px rgba(0,0,0,.9),0 0 42px rgba(192,57,43,.45);}
 .s-title-rule{height:2px;width:64px;margin:9px auto 7px;
   background:linear-gradient(90deg,transparent,var(--gold),transparent);}
-.s-title-sub{font-weight:700;font-size:clamp(9px,2.8vw,11px);letter-spacing:.42em;
-  text-transform:uppercase;color:var(--gdim);text-shadow:0 1px 8px rgba(0,0,0,.9);}
+/* --gdim (#7a5820) is too dark to read against the darkened board; --gold carries. */
+.s-title-sub{font-weight:700;font-size:clamp(10px,3vw,12px);letter-spacing:.42em;
+  text-transform:uppercase;color:var(--gold);opacity:.92;
+  text-shadow:0 1px 10px rgba(0,0,0,.95);}
 
 .s-box{width:100%;max-width:360px;background:rgba(0,0,0,.32);
   border:1px solid rgba(255,255,255,.1);border-top:2px solid var(--gdim);padding:16px;margin-bottom:10px;}
