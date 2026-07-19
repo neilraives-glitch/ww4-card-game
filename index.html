@@ -56,6 +56,43 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
     radial-gradient(ellipse 120% 80% at 50% 34%, rgba(46,32,18,.55) 0%, transparent 62%),
     linear-gradient(180deg, #0d1310 0%, #0a0f0c 45%, #060907 100%);}
 
+/* ── SPLASH ── shares #setup's backdrop treatment, art at full size ── */
+#splash{align-items:center;justify-content:center;padding:24px 20px;
+  position:relative;overflow:hidden;cursor:pointer;
+  background:
+    radial-gradient(ellipse 120% 80% at 50% 42%, rgba(46,32,18,.6) 0%, transparent 64%),
+    linear-gradient(180deg, #0d1310 0%, #0a0f0c 50%, #060907 100%);}
+/* .s-tap excluded — it is absolutely positioned and this would reset it. */
+#splash > *:not(.s-bg):not(.s-tap){position:relative;z-index:1;}
+.s-tap{z-index:2;}
+/* No form competing for the screen, so the hero can run bigger here. */
+#splash .s-hero{min-height:clamp(300px, min(88vw, 52vh), 500px);margin-bottom:0;}
+#splash .s-cloud{width:clamp(300px, min(92vw, 54vh), 520px);opacity:.9;}
+#splash .s-flags img{width:clamp(50px, 16vw, 92px);}
+/* Padding clears the flag columns; the type is sized so "WORLD WAR 4" stays on
+   one line inside what's left — at 22vw/10.5vw the 4 wrapped to its own line. */
+#splash .s-title{padding:0 clamp(60px, 19vw, 112px);}
+#splash .s-title-main{font-size:clamp(26px,8.8vw,54px);white-space:nowrap;}
+
+.s-tap{position:absolute;left:0;right:0;bottom:clamp(28px,7vh,64px);
+  text-align:center;font-weight:700;font-size:11px;letter-spacing:.34em;
+  text-transform:uppercase;color:rgba(237,230,213,.62);
+  animation:tapPulse 2.1s ease-in-out infinite;}
+@keyframes tapPulse{0%,100%{opacity:.34;}50%{opacity:.9;}}
+
+/* Setup keeps the map for continuity but pulled right back — the form leads. */
+.s-bg-quiet .s-hormuz{opacity:.20;}
+.s-bg-quiet .s-hormuz-line{opacity:.26;}
+
+/* Compact header on the setup screen: a hint of cloud behind a small wordmark. */
+.s-mini{position:relative;display:flex;align-items:center;justify-content:center;
+  width:100%;min-height:clamp(72px,15vh,120px);margin-bottom:14px;}
+.s-mini-cloud{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);
+  width:clamp(150px,44vw,230px);opacity:.34;filter:saturate(.85);pointer-events:none;}
+.s-mini-title{position:relative;font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(24px,7.5vw,38px);letter-spacing:.05em;color:var(--cream);
+  text-shadow:0 2px 16px rgba(0,0,0,.92),0 0 34px rgba(192,57,43,.4);}
+
 /* ── Composited title backdrop ── */
 .s-bg{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
 /* Strait of Hormuz as ground plane, sunk low and wide so the cloud reads as
@@ -744,7 +781,40 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 <body>
 
 <!-- SETUP -->
-<div id="setup" class="screen active">
+<!-- SPLASH — artwork gets the whole screen; tap anywhere to continue -->
+<div id="splash" class="screen active" onclick="leaveSplash()">
+  <!-- Strait of Hormuz sits behind everything as the ground plane. -->
+  <div class="s-bg" aria-hidden="true">
+    <img class="s-hormuz"      src="art/hormuz-land.webp" alt="">
+    <img class="s-hormuz-line" src="art/hormuz-line.webp" alt="">
+  </div>
+
+  <!-- Cloud, flags and title share one centring context so they cannot drift
+       apart across viewports. Flags split by the game's own blocs: west left,
+       east right. -->
+  <div class="s-hero">
+    <img class="s-cloud" src="art/cloud.webp" alt="" aria-hidden="true">
+    <div class="s-flags west" aria-hidden="true">
+      <img src="art/flag-usa.webp" alt="">
+      <img src="art/flag-il.webp"  alt="">
+      <img src="art/flag-tw.webp"  alt="">
+    </div>
+    <div class="s-flags east" aria-hidden="true">
+      <img src="art/flag-ru.webp" alt="">
+      <img src="art/flag-cn.webp" alt="">
+      <img src="art/flag-ir.webp" alt="">
+    </div>
+    <div class="s-title">
+      <div class="s-title-main">WORLD WAR 4</div>
+      <div class="s-title-rule"></div>
+      <div class="s-title-sub">The Card Game</div>
+    </div>
+  </div>
+
+  <div class="s-tap" id="s-tap">Tap to begin</div>
+</div>
+
+<div id="setup" class="screen">
 
   
 
@@ -876,32 +946,14 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
     </g>
   </svg>
 
-  <!-- Strait of Hormuz sits behind everything as the ground plane. -->
-  <div class="s-bg" aria-hidden="true">
+  <div class="s-bg s-bg-quiet" aria-hidden="true">
     <img class="s-hormuz"      src="art/hormuz-land.webp" alt="">
     <img class="s-hormuz-line" src="art/hormuz-line.webp" alt="">
   </div>
 
-  <!-- Cloud, flags and title share one centring context so they cannot drift
-       apart across viewports. Flags split by the game's own blocs: west left,
-       east right. -->
-  <div class="s-hero">
-    <img class="s-cloud" src="art/cloud.webp" alt="" aria-hidden="true">
-    <div class="s-flags west" aria-hidden="true">
-      <img src="art/flag-usa.webp" alt="">
-      <img src="art/flag-il.webp"  alt="">
-      <img src="art/flag-tw.webp"  alt="">
-    </div>
-    <div class="s-flags east" aria-hidden="true">
-      <img src="art/flag-ru.webp" alt="">
-      <img src="art/flag-cn.webp" alt="">
-      <img src="art/flag-ir.webp" alt="">
-    </div>
-    <div class="s-title">
-      <div class="s-title-main">WORLD WAR 4</div>
-      <div class="s-title-rule"></div>
-      <div class="s-title-sub">The Card Game</div>
-    </div>
+  <div class="s-mini">
+    <img class="s-mini-cloud" src="art/cloud.webp" alt="" aria-hidden="true">
+    <div class="s-mini-title">WORLD WAR 4</div>
   </div>
 
   <div class="s-box">
@@ -1070,6 +1122,17 @@ function startGame(){
   closeResult();showScreen('game');render();
 }
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+/* Splash → setup. Guarded so a double-tap during the fade can't fire twice, and
+   focus moves to the name field so the keyboard is ready on arrival. */
+let splashDone=false;
+function leaveSplash(){
+  if(splashDone) return;
+  splashDone=true;
+  showScreen('setup');
+  const n=document.getElementById('pname');
+  if(n && !('ontouchstart' in window)) n.focus();
+}
 
 /* ── render ── */
 function render(){
