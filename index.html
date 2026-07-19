@@ -57,18 +57,41 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
     linear-gradient(180deg, #0d1310 0%, #0a0f0c 45%, #060907 100%);}
 
 /* ── SPLASH ── shares #setup's backdrop treatment, art at full size ── */
-#splash{align-items:center;justify-content:center;padding:24px 20px;
+#splash{--tap-space:clamp(64px,12vh,120px);
+  align-items:center;justify-content:center;padding:24px 20px;
   position:relative;overflow:hidden;cursor:pointer;
   background:
     radial-gradient(ellipse 120% 80% at 50% 42%, rgba(46,32,18,.6) 0%, transparent 64%),
     linear-gradient(180deg, #0d1310 0%, #0a0f0c 50%, #060907 100%);}
-/* .s-tap excluded — it is absolutely positioned and this would reset it. */
-#splash > *:not(.s-bg):not(.s-tap){position:relative;z-index:1;}
+/* .s-tap and .s-hero are excluded: both are absolutely positioned, and this rule
+   outscores their own (two :not classes vs one), so it would silently reset them. */
+#splash > *:not(.s-bg):not(.s-tap):not(.s-hero){position:relative;z-index:1;}
 .s-tap{z-index:2;}
-/* No form competing for the screen, so the hero can run bigger here. */
-#splash .s-hero{min-height:clamp(300px, min(88vw, 52vh), 500px);margin-bottom:0;}
-#splash .s-cloud{width:clamp(300px, min(92vw, 54vh), 520px);opacity:.9;}
+#splash .s-hero{z-index:1;}
+/* No form competing for the screen, so the hero takes the whole splash: from the
+   top down to just above the tap prompt. Everything inside — cloud, flags, title
+   — centres on this box, so they share one midline by construction. */
+/* Inset horizontally by the screen padding — at left:0/right:0 the flag columns
+   sat flush to the viewport edge and their outer arcs were clipped. */
+/* width:auto is load-bearing — the base .s-hero sets width:100%, and an absolute
+   box with left + right + width is over-constrained, so the browser drops `right`
+   and the east flag column lands past the viewport edge. */
+#splash .s-hero{position:absolute;left:20px;right:20px;top:0;
+  bottom:var(--tap-space);width:auto;min-height:0;margin:0;max-width:none;}
+/* Height-driven, so the cloud spans that full band. It is near-square (352x359),
+   so filling ~700px of height overflows 390px of width — #splash clips it, which
+   crops the cap's outer edges evenly and reads as the cloud filling the screen. */
+#splash .s-cloud{top:50%;height:100%;width:auto;max-width:none;opacity:.9;}
 #splash .s-flags img{width:clamp(50px, 16vw, 92px);}
+/* The strait now lives inside the hero, so it centres on the same midline as the
+   cloud and the flag columns by construction, and paints over the cloud's waist
+   (z-index 1) instead of being buried behind it. Wider than the viewport so the
+   coast runs off both edges rather than floating. */
+#splash .s-hormuz,#splash .s-hormuz-line{
+  top:50%;left:50%;transform:translate(-50%,-50%);
+  width:clamp(460px, 165vw, 1200px);max-width:none;z-index:1;}
+#splash .s-hormuz{opacity:.50;}
+#splash .s-hormuz-line{opacity:.72;}
 /* Padding clears the flag columns; the type is sized so "WORLD WAR 4" stays on
    one line inside what's left — at 22vw/10.5vw the 4 wrapped to its own line. */
 #splash .s-title{padding:0 clamp(60px, 19vw, 112px);}
@@ -784,16 +807,15 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 <!-- SPLASH — artwork gets the whole screen; tap anywhere to continue -->
 <div id="splash" class="screen active" onclick="leaveSplash()">
   <!-- Strait of Hormuz sits behind everything as the ground plane. -->
-  <div class="s-bg" aria-hidden="true">
-    <img class="s-hormuz"      src="art/hormuz-land.webp" alt="">
-    <img class="s-hormuz-line" src="art/hormuz-line.webp" alt="">
-  </div>
+  <div class="s-bg" aria-hidden="true"></div>
 
   <!-- Cloud, flags and title share one centring context so they cannot drift
        apart across viewports. Flags split by the game's own blocs: west left,
        east right. -->
   <div class="s-hero">
     <img class="s-cloud" src="art/cloud.webp" alt="" aria-hidden="true">
+    <img class="s-hormuz"      src="art/hormuz-land.webp" alt="" aria-hidden="true">
+    <img class="s-hormuz-line" src="art/hormuz-line.webp" alt="" aria-hidden="true">
     <div class="s-flags west" aria-hidden="true">
       <img src="art/flag-usa.webp" alt="">
       <img src="art/flag-il.webp"  alt="">
