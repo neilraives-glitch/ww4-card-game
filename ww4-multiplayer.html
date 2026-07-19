@@ -1605,10 +1605,17 @@ function subscribeRoom(){
 window._subscribeRoom=subscribeRoom;
 
 /* ── PWA install support ── */
+/* Skipped on localhost — see the matching note in index.html. */
+const IS_DEV = ['localhost','127.0.0.1','[::1]',''].includes(location.hostname);
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('sw.js').catch(()=>{});
-  });
+  if(IS_DEV){
+    navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister()));
+    if(window.caches) caches.keys().then(ks=>ks.forEach(k=>caches.delete(k)));
+  } else {
+    window.addEventListener('load',()=>{
+      navigator.serviceWorker.register('sw.js').catch(()=>{});
+    });
+  }
 }
 </script>
 </body>

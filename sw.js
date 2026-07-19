@@ -5,7 +5,6 @@ const CACHE_NAME = 'ww4-cache-v2';
 const SHELL_FILES = [
   './',
   'index.html',
-  'ww4-singleplayer.html',
   'ww4-multiplayer.html',
   'manifest.json',
   'icon-192.png',
