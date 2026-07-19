@@ -328,10 +328,21 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 .ante-strip.on{display:block;}
 .ante-lbl{font-weight:700;font-size:9px;letter-spacing:.25em;color:var(--red);
   text-transform:uppercase;margin-bottom:4px;}
-.ante-rows{display:flex;flex-direction:column;gap:3px;}
-.ante-row{display:flex;align-items:center;gap:6px;}
-.ante-pname{font-weight:700;font-size:9px;letter-spacing:.1em;text-transform:uppercase;width:34px;flex-shrink:0;}
-.ante-cards-row{display:flex;gap:2px;}
+/* Laid out across, not down. One stacked row per player put six rows on screen
+   in 3v3 — a 227px strip on an 844px phone, which squeezed the board's cards to
+   89px. Side by side with the ante cards fanned, the same information costs
+   roughly a quarter of that. */
+.ante-rows{display:flex;flex-direction:row;flex-wrap:wrap;
+  justify-content:center;align-items:flex-start;gap:4px 7px;}
+.ante-row{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;}
+.ante-pname{font-weight:700;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;
+  width:auto;max-width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0;}
+/* Fanned: each card sits partly over the one before. Ante cards are all
+   identical face-down backs, so heavy overlap costs no information — it only
+   needs to read as "four are down". --ante-fan tightens as players are added
+   (set in renderAnte) so six players still fit on one line in 3v3. */
+.ante-cards-row{display:flex;gap:0;}
+.ante-cards-row .card + .card{margin-left:calc(var(--cw-xs) * var(--ante-fan, -0.45));}
 
 /* ══════════ TABLE WRAP ══════════ */
 .table-wrap{flex:1;position:relative;overflow:hidden;display:flex;}
@@ -1391,7 +1402,19 @@ function renderAnte(){
   document.getElementById('ante-lbl').textContent=
     G.phase==='ww4flip'?'⚡ WW4 — 4 Down, Flip 1':G.phase==='mini_flip'?'⚡ WW4 — 2 Down, Flip 1':'⚡ World War 4';
   rows.innerHTML='';
-  G.ante.forEach(entry=>{
+  /* Tighten the fan as the strip gets busier: 4 antes x 6 players will not sit
+     on one line at a gentle overlap, and a wrapped strip costs the board ~55px
+     of height. The cards are identical backs, so overlap loses nothing. */
+  const seats=G.ante.length, antes=Math.max(...G.ante.map(e=>e.cards.length),1);
+  const fan = seats*antes>=20 ? -0.72 : seats*antes>=12 ? -0.6 : -0.45;
+  document.documentElement.style.setProperty('--ante-fan',fan);
+  /* Opponents first, then your side — the same top-to-bottom order as the board,
+     so a seat in the strip lines up with the player it belongs to. */
+  const ordered=[...G.ante].sort((x,y)=>{
+    const tx=G.players[x.idx].team, ty=G.players[y.idx].team;
+    return tx===ty ? x.idx-y.idx : (tx==='b'?-1:1);
+  });
+  ordered.forEach(entry=>{
     const p=G.players[entry.idx];
     const row=document.createElement('div');row.className='ante-row';
     const nm=document.createElement('div');nm.className='ante-pname';

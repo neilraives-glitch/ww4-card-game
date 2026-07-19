@@ -188,10 +188,16 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 .ante-strip.on{display:block;}
 .ante-lbl{font-weight:700;font-size:9px;letter-spacing:.25em;color:var(--red);
   text-transform:uppercase;margin-bottom:4px;}
-.ante-rows{display:flex;flex-direction:column;gap:3px;}
-.ante-row{display:flex;align-items:center;gap:6px;}
-.ante-pname{font-weight:700;font-size:9px;letter-spacing:.1em;text-transform:uppercase;width:34px;flex-shrink:0;}
-.ante-cards-row{display:flex;gap:2px;}
+/* Laid out across, not down — see index.html. Six stacked rows in 3v3 made a
+   227px strip that squeezed the board's cards; side by side with the antes
+   fanned, the same information costs about a third of that. */
+.ante-rows{display:flex;flex-direction:row;flex-wrap:wrap;
+  justify-content:center;align-items:flex-start;gap:4px 7px;}
+.ante-row{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;}
+.ante-pname{font-weight:700;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;
+  width:auto;max-width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0;}
+.ante-cards-row{display:flex;gap:0;}
+.ante-cards-row .card + .card{margin-left:calc(var(--cw-xs) * var(--ante-fan, -0.45));}
 
 /* ══════ TABLE — stylized Strait of Hormuz battlefield ══════ */
 .table-wrap{flex:1;position:relative;overflow:hidden;display:flex;}
@@ -1605,7 +1611,19 @@ function renderAnte(){
   document.getElementById('ante-lbl').textContent=
     G.phase==='ww4flip'?'⚡ WW4 — 4 Down, Flip 1':G.phase==='mini_flip'?'⚡ WW4 — 2 Down, Flip 1':'⚡ World War 4';
   rows.innerHTML='';
-  G.ante.forEach(entry=>{
+  /* Tighten the fan as the strip gets busier so six seats still fit one line,
+     and order opponents first to match the board's top-to-bottom layout. */
+  const seats=G.ante.length, antes=Math.max(...G.ante.map(e=>(e.cards||[]).length),1);
+  document.documentElement.style.setProperty('--ante-fan',
+    seats*antes>=20 ? -0.72 : seats*antes>=12 ? -0.6 : -0.45);
+  const myTeam=G.players.find(pl=>pl.id===myId)?.team||'a';
+  const teamOf=pid=>G.players.find(pl=>pl.id===pid)?.team||'a';
+  const ordered=[...G.ante].sort((x,y)=>{
+    const tx=teamOf(x.pid), ty=teamOf(y.pid);
+    if(tx===ty) return 0;
+    return tx===myTeam ? 1 : -1;   // opponents first
+  });
+  ordered.forEach(entry=>{
     const p=G.players.find(pl=>pl.id===entry.pid)||G.players[0];
     const row=document.createElement('div'); row.className='ante-row';
     const nm=document.createElement('div'); nm.className='ante-pname';
