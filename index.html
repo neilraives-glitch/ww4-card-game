@@ -236,7 +236,7 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
   padding:8px 11px;outline:none;transition:border-color .2s;border-radius:0;-webkit-appearance:none;}
 .s-input:focus{border-color:var(--gold);}
 .s-input::placeholder{color:rgba(255,255,255,.38);}
-.s-modes{display:grid;grid-template-columns:1fr 1fr;gap:7px;width:100%;max-width:330px;margin-bottom:8px;}
+.s-modes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:100%;max-width:330px;margin-bottom:8px;}
 .s-mode{background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.1);
   color:rgba(255,255,255,.38);font-family:'Bebas Neue',sans-serif;font-size:16px;
   letter-spacing:.1em;padding:9px 8px;cursor:pointer;text-align:center;transition:all .18s;}
@@ -439,6 +439,22 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 .tr-btn:active{opacity:.8;}
 
 /* Hide normal center content when result is showing */
+/* Flip tally — the beat between cards landing and the round resolving. Without
+   it the flip read as instant: cards appeared and the result panel was already
+   up, so you never saw the numbers you were being judged on. */
+.ctr-tally{display:none;align-items:baseline;justify-content:center;gap:8px;
+  font-family:'Bebas Neue',sans-serif;line-height:1;
+  animation:tallyIn .22s cubic-bezier(.2,1.3,.3,1);}
+.ctr-tally.on{display:flex;}
+.tally-v{font-size:clamp(26px,8vw,40px);}
+.tally-v.a{color:var(--gold);}
+.tally-v.b{color:var(--bravo);}
+.tally-v.lead{text-shadow:0 0 18px currentColor;}
+.tally-x{font-family:'Barlow Condensed',sans-serif;font-weight:700;
+  font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  color:rgba(255,255,255,.35);}
+@keyframes tallyIn{from{opacity:0;transform:scale(.8);}to{opacity:1;transform:scale(1);}}
+.zone-center.result-active #ctr-tally,
 .zone-center.result-active #ctr-logo,
 .zone-center.result-active #ctr-sub,
 .zone-center.result-active #pot-pill{display:none !important;}
@@ -1002,8 +1018,9 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
   </div>
   <div class="s-lbl" style="width:100%;max-width:360px;margin-bottom:8px;">Game Mode</div>
   <div class="s-modes">
-    <div class="s-mode on" id="m1v1" onclick="pickMode('1v1')">1v1<div class="s-mode-sub">You vs 1 Bot · 1 deck</div></div>
-    <div class="s-mode"    id="m2v2" onclick="pickMode('2v2')">2v2<div class="s-mode-sub">You+Bot vs 2 Bots · 2 decks</div></div>
+    <div class="s-mode on" id="m1v1" onclick="pickMode('1v1')">1v1<div class="s-mode-sub">You vs 1 · 1 deck</div></div>
+    <div class="s-mode"    id="m2v2" onclick="pickMode('2v2')">2v2<div class="s-mode-sub">You+1 vs 2 · 2 decks</div></div>
+    <div class="s-mode"    id="m3v3" onclick="pickMode('3v3')">3v3<div class="s-mode-sub">You+2 vs 3 · 3 decks</div></div>
   </div>
   <button class="s-deploy" onclick="startGame()">⚔ DEPLOY</button>
 </div>
@@ -1033,6 +1050,12 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
             <div class="ctr-logo" id="ctr-logo">WW4</div>
             <div class="pot-pill" id="pot-pill">0 in pot</div>
             <div class="ctr-sub" id="ctr-sub">BATTLE</div>
+            <!-- Running totals, shown during the beat between flip and result -->
+            <div class="ctr-tally" id="ctr-tally">
+              <span class="tally-v a" id="tally-a">0</span>
+              <span class="tally-x">vs</span>
+              <span class="tally-v b" id="tally-b">0</span>
+            </div>
             <div class="table-result" id="table-result">
               <div class="tr-outcome" id="tr-outcome">VICTORY</div>
               <div class="tr-team"    id="tr-team"></div>
@@ -1139,19 +1162,23 @@ function teamLabel(team){
 }
 function pickMode(m){
   G.mode=m;
-  document.getElementById('m1v1').classList.toggle('on',m==='1v1');
-  document.getElementById('m2v2').classList.toggle('on',m==='2v2');
+  ['1v1','2v2','3v3'].forEach(x=>{
+    const el=document.getElementById('m'+x);
+    if(el) el.classList.toggle('on',m===x);
+  });
 }
 
+/* Bot call signs, drawn in order per side. Enough for 3v3's five bots. */
+const BOT_NAMES={a:['Ghost','Wraith'], b:['Reaper','Viper','Talon']};
 function startGame(){
   const name=document.getElementById('pname').value.trim()||'You';
-  const is2=(G.mode==='2v2');
-  G.players=is2?[
-    {name,team:'a',bot:false},{name:'Ghost',team:'a',bot:true},
-    {name:'Reaper',team:'b',bot:true},{name:'Viper',team:'b',bot:true},
-  ]:[{name,team:'a',bot:false},{name:'Bot',team:'b',bot:true}];
+  // Team size follows the mode: 1v1, 2v2, 3v3 — one deck per player per side.
+  const per=Number((G.mode||'1v1')[0])||1;
+  G.players=[{name,team:'a',bot:false}];
+  for(let i=1;i<per;i++) G.players.push({name:BOT_NAMES.a[i-1]||`Ally ${i}`,team:'a',bot:true});
+  for(let i=0;i<per;i++) G.players.push({name:per===1?'Bot':(BOT_NAMES.b[i]||`Enemy ${i+1}`),team:'b',bot:true});
   let pool=[];
-  for(let i=0;i<(is2?2:1);i++) pool=pool.concat(mkDeck());
+  for(let i=0;i<per;i++) pool=pool.concat(mkDeck());
   pool=shuffle(pool);
   const n=G.players.length;
   G.players.forEach(p=>{p.deck=[];p.won=[];});
@@ -1195,8 +1222,16 @@ function fitBoard(){
   if(!window.matchMedia('(max-width:430px)').matches){root.style.removeProperty('--cw-xl');return;}
   const wrap=document.querySelector('.table-wrap'),inner=document.querySelector('.table-inner');
   if(!wrap||!inner||!inner.querySelector('.pspot')) return;
-  const hi0=Math.min(CARD_MAX,innerWidth*0.34);   // keep the width cap too
-  let lo=CARD_MIN,hi=hi0,best=CARD_MIN;
+  /* Cap by width before searching on height. Teammates sit side by side, so a
+     team's cards share one row — three across in 3v3. Height alone let 132px
+     cards through, which came to 407px of row in a 390px viewport and pushed
+     the outer cards off both edges. */
+  const perRow=Math.max(1,...[...inner.querySelectorAll('.zone-opp,.zone-player')]
+    .map(z=>z.querySelectorAll('.pspot').length));
+  const ROW_GAP=6, SIDE_PAD=18;
+  const byWidth=(inner.clientWidth-SIDE_PAD-(perRow-1)*ROW_GAP)/perRow;
+  const hi0=Math.min(CARD_MAX,innerWidth*0.34*(perRow>1?perRow*0.75:1),byWidth);
+  let lo=CARD_MIN,hi=Math.max(CARD_MIN,hi0),best=CARD_MIN;
   for(let i=0;i<FIT_STEPS;i++){
     const mid=(lo+hi)/2;
     root.style.setProperty('--cw-xl',mid+'px');
@@ -1479,7 +1514,7 @@ function triggerWW4Explosion(cb){
   // After peak, fade out then call callback
   setTimeout(()=>{
     blast.className='ww4-blast fade';
-    setTimeout(()=>{blast.className='ww4-blast';cb();},600);
+    setTimeout(()=>{blast.className='ww4-blast';cb();},FLIP_PAUSE);
   },900);
 }
 
@@ -1504,10 +1539,30 @@ function awardPot(team,extra,mult){
   if(ws.length)ws[0|Math.random()*ws.length].won.push(...shuffle(all));G.pot=[];
 }
 
+/* Beat between the cards landing and the round resolving. 420ms was long enough
+   to animate but not to read — the result panel arrived before you'd taken in
+   the numbers. The tally fills that gap with the totals being compared. */
+const FLIP_PAUSE=1250;
+function showTally(t){
+  const el=document.getElementById('ctr-tally');
+  if(!el||!t||!t.length) return;
+  let a=0,b=0;
+  t.forEach(e=>{const v=e.card.joker?100:e.card.v;
+    if(G.players[e.idx].team==='a') a+=v; else b+=v;});
+  const ea=document.getElementById('tally-a'), eb=document.getElementById('tally-b');
+  ea.textContent=a; eb.textContent=b;
+  ea.classList.toggle('lead',a>b); eb.classList.toggle('lead',b>a);
+  el.classList.add('on');
+}
+function hideTally(){ const el=document.getElementById('ctr-tally'); if(el) el.classList.remove('on'); }
+
 function doFlip(){
   G.table=[];let anyOut=false;
   G.players.forEach((p,idx)=>{const c=drawTop(p);if(!c){anyOut=true;return;}G.table.push({idx,card:c});});
-  if(anyOut){checkGameOver();return;}render();setTimeout(resolveFlip,420);
+  if(anyOut){checkGameOver();return;}
+  render();
+  showTally(G.table);
+  setTimeout(()=>{hideTally();resolveFlip();},FLIP_PAUSE);
 }
 /* ── NATION ABILITIES ──
    Resolution order is explicit and matters:
@@ -1679,7 +1734,9 @@ function doWW4Flip(){
   G.players.forEach((p,idx)=>{const c=drawTop(p);if(c)G.table.push({idx,card:c});});
   render();
   const snapshot=[...G.table];
+  showTally(snapshot);
   setTimeout(()=>{
+    hideTally();
     if(!snapshot.length) return;
     let aT=0,bT=0;
     snapshot.forEach(e=>{if(G.players[e.idx].team==='a') aT+=e.card.joker?100:e.card.v; else bT+=e.card.joker?100:e.card.v;});
@@ -1700,7 +1757,7 @@ function doWW4Flip(){
     G.ante=[];G.table=[];
     const bonusMsg=mult>1?' · 🌐 Coalition bonus!':'';
     openResult(wt==='a'?'win':'lose',wt==='a'?'VICTORY':'DEFEAT',`WW4: ${aT} vs ${bT}${bonusMsg}`,snapshot,wt,()=>{nextRound();});
-  },420);
+  },FLIP_PAUSE);
 }
 function doMiniAnte(){
   G.ante=[];const involved=[...new Set(G.miniPairs.flat())];
@@ -1713,7 +1770,9 @@ function doMiniFlip(){
   G.table=flipped;render();
   if(!flipped.length){checkGameOver();return;}
   const snapshot=[...flipped];
+  showTally(snapshot);
   setTimeout(()=>{
+    hideTally();
     let best=-1,winner=-1;
     snapshot.forEach(e=>{const v=e.card.joker?100:e.card.v;if(v>best){best=v;winner=e.idx;}});
     const tied=snapshot.filter(e=>(e.card.joker?100:e.card.v)===best);
@@ -1736,7 +1795,7 @@ function doMiniFlip(){
     openResult(wt==='a'?'win':'lose',wt==='a'?'VICTORY':'DEFEAT',
       `${winner===0?'YOU':G.players[winner].name} flipped ${wc.joker?'JOKER':wc.r} — wins all`,
       snapshot,wt,()=>{nextRound();});
-  },420);
+  },FLIP_PAUSE);
 }
 function nextRound(){G.round++;G.table=[];G.pot=[];G.ante=[];G.miniPairs=[];G.phase='flip';checkGameOver();}
 function checkGameOver(){
