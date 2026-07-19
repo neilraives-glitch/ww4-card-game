@@ -329,14 +329,19 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 .table-wrap{flex:1;position:relative;overflow:hidden;display:flex;}
 
 /* FELT — stylized Strait of Hormuz battlefield */
+/* Felt. The Strait was a 4KB base64 SVG baked into this rule; it now uses the
+   same hormuz art as the splash, so board and title screen share one map.
+   Water is CSS, land is the art, painted by .t-map below. */
 .table{flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column;
   background:
-    linear-gradient(0deg, rgba(8,12,10,.35) 0%, transparent 20%, transparent 80%, rgba(8,12,10,.35) 100%),
-    url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAwIDcwMCIgcHJlc2VydmVBc3BlY3RSYXRpbz0ieE1pZFlNaWQgc2xpY2UiPgogIDxkZWZzPgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJ3YXRlciIgeDE9IjAiIHkxPSIwIiB4Mj0iMCIgeTI9IjEiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjMGQzYTRhIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iNDUlIiBzdG9wLWNvbG9yPSIjMTI0YTVjIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBhMmYzZCIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0ibGFuZE4iIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzRhM2QyOCIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1YzRjMzIiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImxhbmRTIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM1YzRjMzIiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNDYzYTI0Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KCiAgPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iNzAwIiBmaWxsPSJ1cmwoI3dhdGVyKSIvPgoKICA8IS0tIHN1YnRsZSB3YXZlIHRleHR1cmUgLS0+CiAgPGcgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utb3BhY2l0eT0iMC4wMyIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIj4KICAgIDxwYXRoIGQ9Ik0wLDI2MCBRMTUwLDI0MCAzMDAsMjYwIFQ2MDAsMjYwIFQ5MDAsMjYwIFQxMjAwLDI2MCIvPgogICAgPHBhdGggZD0iTTAsMzQwIFExNTAsMzIwIDMwMCwzNDAgVDYwMCwzNDAgVDkwMCwzNDAgVDEyMDAsMzQwIi8+CiAgICA8cGF0aCBkPSJNMCw0MjAgUTE1MCw0MDAgMzAwLDQyMCBUNjAwLDQyMCBUOTAwLDQyMCBUMTIwMCw0MjAiLz4KICA8L2c+CgogIDwhLS0gSXJhbiBjb2FzdGxpbmUgKG5vcnRoIC8gdG9wKSAtIGphZ2dlZCwgbW91bnRhaW5vdXMgY29hc3QgLS0+CiAgPHBhdGggZD0iTTAsMCBMMCwxNTAgTDYwLDE0NSBMMTEwLDE3NSBMMTcwLDE1MCBMMjMwLDE5MCBMMzAwLDE2MAogICAgICAgICAgIEwzNjAsMjAwIEw0MzAsMTY1IEw1MDAsMjA1IEw1NjAsMTcwIEw2MzAsMjEwIEw3MDAsMTc1CiAgICAgICAgICAgTDc3MCwyMTUgTDg0MCwxODAgTDkwMCwyMjAgTDk3MCwxODUgTDEwNDAsMjE1IEwxMTAwLDE4MAogICAgICAgICAgIEwxMTYwLDIwNSBMMTIwMCwxODAgTDEyMDAsMCBaIiBmaWxsPSJ1cmwoI2xhbmROKSIvPgogIDxwYXRoIGQ9Ik0wLDE1MCBMNjAsMTQ1IEwxMTAsMTc1IEwxNzAsMTUwIEwyMzAsMTkwIEwzMDAsMTYwCiAgICAgICAgICAgTDM2MCwyMDAgTDQzMCwxNjUgTDUwMCwyMDUgTDU2MCwxNzAgTDYzMCwyMTAgTDcwMCwxNzUKICAgICAgICAgICBMNzcwLDIxNSBMODQwLDE4MCBMOTAwLDIyMCBMOTcwLDE4NSBMMTA0MCwyMTUgTDExMDAsMTgwCiAgICAgICAgICAgTDExNjAsMjA1IEwxMjAwLDE4MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMmUyNTE3IiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1vcGFjaXR5PSIwLjUiLz4KCiAgPCEtLSBNdXNhbmRhbSBQZW5pbnN1bGEgKFVBRS9PbWFuIC8gYm90dG9tKSAtIGNoYXJhY3RlcmlzdGljIGZyYWN0YWwgZmpvcmQgY29hc3QgLS0+CiAgPHBhdGggZD0iTTAsNzAwIEwwLDU2MCBMNDAsNTY1IEw1NSw1MjAgTDkwLDUzMCBMMTAwLDQ5MCBMMTQwLDUwMAogICAgICAgICAgIEwxNTUsNDYwIEwxOTAsNDcwIEwyMDAsNDMwIEwyNTAsNDQ1IEwyNjAsNDEwIEwzMTAsNDI1CiAgICAgICAgICAgTDMzMCw0NjAgTDM4MCw0NTAgTDQwMCw0OTAgTDQ1MCw0ODAgTDQ4MCw1MjAgTDU0MCw1MDUKICAgICAgICAgICBMNTYwLDU0NSBMNjIwLDUzMCBMNjUwLDU3MCBMNzEwLDU1MCBMNzQwLDU5MCBMODAwLDU3MAogICAgICAgICAgIEw4MzAsNjEwIEw4OTAsNTkwIEw5MjAsNjMwIEw5ODAsNjEwIEwxMDEwLDY0MCBMMTA3MCw2MjUKICAgICAgICAgICBMMTEwMCw2NTUgTDExNjAsNjQwIEwxMjAwLDY2MCBMMTIwMCw3MDAgWiIgZmlsbD0idXJsKCNsYW5kUykiLz4KICA8cGF0aCBkPSJNMCw1NjAgTDQwLDU2NSBMNTUsNTIwIEw5MCw1MzAgTDEwMCw0OTAgTDE0MCw1MDAKICAgICAgICAgICBMMTU1LDQ2MCBMMTkwLDQ3MCBMMjAwLDQzMCBMMjUwLDQ0NSBMMjYwLDQxMCBMMzEwLDQyNQogICAgICAgICAgIEwzMzAsNDYwIEwzODAsNDUwIEw0MDAsNDkwIEw0NTAsNDgwIEw0ODAsNTIwIEw1NDAsNTA1CiAgICAgICAgICAgTDU2MCw1NDUgTDYyMCw1MzAgTDY1MCw1NzAgTDcxMCw1NTAgTDc0MCw1OTAgTDgwMCw1NzAKICAgICAgICAgICBMODMwLDYxMCBMODkwLDU5MCBMOTIwLDYzMCBMOTgwLDYxMCBMMTAxMCw2NDAgTDEwNzAsNjI1CiAgICAgICAgICAgTDExMDAsNjU1IEwxMTYwLDY0MCBMMTIwMCw2NjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzJlMjUxNyIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2Utb3BhY2l0eT0iMC41Ii8+CgogIDwhLS0gc21hbGwgaXNsYW5kcyBpbiB0aGUgc3RyYWl0IChldm9raW5nIFFlc2htIC8gSG9ybXV6IElzbGFuZCkgLS0+CiAgPGVsbGlwc2UgY3g9IjQ3MCIgY3k9IjMzMCIgcng9IjcwIiByeT0iMTgiIGZpbGw9IiM0YTNkMjgiIG9wYWNpdHk9IjAuODUiLz4KICA8ZWxsaXBzZSBjeD0iNjIwIiBjeT0iMzYwIiByeD0iMzAiIHJ5PSIxMCIgZmlsbD0iIzRhM2QyOCIgb3BhY2l0eT0iMC44Ii8+CiAgPGVsbGlwc2UgY3g9IjgyMCIgY3k9IjMwMCIgcng9IjIyIiByeT0iOSIgZmlsbD0iIzRhM2QyOCIgb3BhY2l0eT0iMC43NSIvPgoKICA8IS0tIHNvZnQgdmlnbmV0dGUgdG8ga2VlcCBpdCBtb29keSAvIG5vdCBkaXN0cmFjdGluZyBiZWhpbmQgY2FyZHMgLS0+CiAgPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iNzAwIiBmaWxsPSJibGFjayIgb3BhY2l0eT0iMC4yOCIvPgo8L3N2Zz4=");
-  background-size:cover;
-  background-position:center;
-  background-repeat:no-repeat;}
-.tflag-tl,.tflag-tr,.tflag-bl,.tflag-br{display:none;}
+    linear-gradient(0deg, rgba(8,12,10,.4) 0%, transparent 22%, transparent 78%, rgba(8,12,10,.4) 100%),
+    linear-gradient(180deg, #0d3a4a 0%, #124a5c 45%, #0a2f3d 100%);}
+/* Land mass + coastline, sunk into the water and pushed off-centre so the strait
+   itself runs through the middle of the board where the cards land. */
+.t-map,.t-map-line{position:absolute;left:52%;top:50%;transform:translate(-50%,-50%);
+  width:min(150%, 900px);max-width:none;pointer-events:none;z-index:0;}
+.t-map{opacity:.5;}
+.t-map-line{opacity:.5;}
 .t-grain{position:absolute;inset:0;pointer-events:none;z-index:1;
   background-image:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.016) 2px,rgba(0,0,0,.016) 3px),
     repeating-linear-gradient(90deg,transparent,transparent 2px,rgba(0,0,0,.016) 2px,rgba(0,0,0,.016) 3px);}
@@ -1014,8 +1019,8 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
   </div>
   <div class="table-wrap">
     <div class="table">
-      <div class="tflag-tl"></div><div class="tflag-tr"></div>
-      <div class="tflag-bl"></div><div class="tflag-br"></div>
+      <img class="t-map"      src="art/hormuz-land.webp" alt="" aria-hidden="true">
+      <img class="t-map-line" src="art/hormuz-line.webp" alt="" aria-hidden="true">
       <div class="t-grain"></div><div class="t-oval"></div><div class="t-vig"></div>
       <div class="table-inner">
         <div class="team-bar top" id="team-bar-opp">
