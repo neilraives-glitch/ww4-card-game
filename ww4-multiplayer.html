@@ -151,7 +151,13 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
   color:rgba(255,255,255,.7);}
 .team-bar.top .tb-name{color:var(--bravo);}
 .team-bar.bottom .tb-name{color:var(--gold);}
-.tb-score{font-family:'Bebas Neue',sans-serif;font-size:28px;line-height:1;color:var(--cream);}
+/* Scores carry the team colour, not just the names — both were cream, so the
+   two numbers looked interchangeable. Mirrors index.html. */
+.tb-score{font-family:'Bebas Neue',sans-serif;font-size:28px;line-height:1;}
+.team-bar.top .tb-score{color:var(--bravo);}
+.team-bar.bottom .tb-score{color:var(--gold);}
+.team-bar.top{border-left:3px solid var(--bravo);background:linear-gradient(90deg,rgba(224,61,61,.16),rgba(0,0,0,.28) 60%);}
+.team-bar.bottom{border-left:3px solid var(--gold);background:linear-gradient(90deg,rgba(200,168,75,.16),rgba(0,0,0,.28) 60%);}
 .tb-score.pop{animation:scorePop .5s cubic-bezier(.2,1.4,.4,1);}
 
 /* ══════ BATTLE ROW (cards side by side, horizontally) ══════ */
@@ -214,9 +220,14 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 
 .pspot{display:flex;flex-direction:column;align-items:center;gap:3px;}
 .pspot-info{display:flex;flex-direction:column;align-items:center;gap:2px;}
-.pspot-name{font-weight:700;font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.6);}
+.pspot-name{font-weight:700;font-size:clamp(9px,calc(var(--cw-xl) * .115),15px);
+  letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.72);white-space:nowrap;}
 .pspot-name.me{color:var(--gold);}
-.pspot-ct{font-family:'Bebas Neue',sans-serif;font-size:16px;color:rgba(255,255,255,.32);line-height:1;}
+.zone-opp .pspot-name{color:rgba(224,61,61,.85);}
+.zone-player .pspot-name{color:rgba(200,168,75,.9);}
+.pspot-name.me{color:var(--gold);}
+.pspot-ct{font-family:'Bebas Neue',sans-serif;font-size:clamp(10px,calc(var(--cw-xl) * .12),16px);
+  color:rgba(255,255,255,.38);line-height:1;white-space:nowrap;}
 
 .ctr-logo{font-family:'Bebas Neue',sans-serif;font-size:clamp(18px,5vw,30px);
   letter-spacing:.25em;color:rgba(255,255,255,.09);pointer-events:none;user-select:none;line-height:1;}
@@ -252,11 +263,12 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 .tr-btn:disabled{opacity:.35;cursor:not-allowed;}
 /* Flip tally — see index.html. Shown while the host resolves, so every client
    reads the totals before the result arrives over the wire. */
-.ctr-tally{display:none;align-items:baseline;justify-content:center;gap:8px;
+/* Stacked to match the board: top number is the top team's, bottom is yours. */
+.ctr-tally{display:none;flex-direction:column;align-items:center;justify-content:center;gap:1px;
   font-family:'Bebas Neue',sans-serif;line-height:1;
   animation:tallyIn .22s cubic-bezier(.2,1.3,.3,1);}
 .ctr-tally.on{display:flex;}
-.tally-v{font-size:clamp(26px,8vw,40px);}
+.tally-v{font-size:clamp(22px,6.5vw,34px);}
 .tally-v.a{color:var(--gold);}
 .tally-v.b{color:var(--bravo);}
 .tally-v.lead{text-shadow:0 0 18px currentColor;}
@@ -588,9 +600,9 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
             <div class="ctr-sub" id="ctr-sub">BATTLE</div>
             <!-- Running totals, shown during the beat before the result lands -->
             <div class="ctr-tally" id="ctr-tally">
-              <span class="tally-v a" id="tally-a">0</span>
-              <span class="tally-x">vs</span>
               <span class="tally-v b" id="tally-b">0</span>
+              <span class="tally-x">vs</span>
+              <span class="tally-v a" id="tally-a">0</span>
             </div>
             <div class="table-result" id="table-result">
               <div class="tr-outcome" id="tr-outcome">VICTORY</div>
@@ -1465,7 +1477,14 @@ function fitBoard(){
   if(!window.matchMedia('(max-width:430px)').matches){root.style.removeProperty('--cw-xl');return;}
   const wrap=document.querySelector('.table-wrap'),inner=document.querySelector('.table-inner');
   if(!wrap||!inner||!inner.querySelector('.pspot')) return;
-  let lo=CARD_MIN,hi=Math.min(CARD_MAX,innerWidth*0.34),best=CARD_MIN;
+  /* Cap by width before searching height: teammates share a row, three across in
+     3v3. LABEL_ROOM keeps the name line from butting into the next column. */
+  const perRow=Math.max(1,...[...inner.querySelectorAll('.zone-opp,.zone-player')]
+    .map(z=>z.querySelectorAll('.pspot').length));
+  const ROW_GAP=6, SIDE_PAD=18, LABEL_ROOM=0.93;
+  const byWidth=((inner.clientWidth-SIDE_PAD-(perRow-1)*ROW_GAP)/perRow)*LABEL_ROOM;
+  const hi0=Math.min(CARD_MAX,innerWidth*0.34*(perRow>1?perRow*0.75:1),byWidth);
+  let lo=CARD_MIN,hi=Math.max(CARD_MIN,hi0),best=CARD_MIN;
   for(let i=0;i<FIT_STEPS;i++){
     const mid=(lo+hi)/2;
     root.style.setProperty('--cw-xl',mid+'px');
