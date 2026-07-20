@@ -44,6 +44,9 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
   background:
     radial-gradient(ellipse 120% 80% at 50% 30%, rgba(46,32,18,.5) 0%, transparent 62%),
     linear-gradient(180deg, #0d1310 0%, #0a0f0c 45%, #060907 100%);}
+.lobby-flags{display:flex;justify-content:center;gap:clamp(4px,1.8vw,9px);margin:6px 0 10px;}
+.lobby-flags img{width:clamp(22px,7vw,32px);height:auto;display:block;
+  filter:saturate(1.02) drop-shadow(0 2px 6px rgba(0,0,0,.7));}
 .lobby-map{position:absolute;left:50%;top:34%;transform:translate(-50%,-50%);
   width:min(160%,900px);max-width:none;opacity:.22;pointer-events:none;z-index:0;}
 .lobby-bg > *:not(.lobby-map){position:relative;z-index:1;}
@@ -137,8 +140,12 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 .rail::before{content:'';position:absolute;inset:0 0 3px 0;
   background:linear-gradient(180deg,rgba(255,255,255,.07) 0%,transparent 100%);pointer-events:none;}
 .rail-mid{display:flex;flex-direction:column;align-items:center;}
-.rail-logo{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.16em;
-  color:var(--cream);text-shadow:2px 2px 0 var(--red);}
+/* Matches the card back's lockup — see index.html. */
+.rail-logo{font-family:'Bebas Neue',sans-serif;font-size:clamp(19px,6vw,26px);
+  letter-spacing:.1em;line-height:1;color:var(--cream);text-shadow:2px 2px 0 var(--red);}
+.rail-flags{display:flex;gap:clamp(3px,1.2vw,6px);margin:3px 0 2px;}
+.rail-flags img{width:clamp(13px,4vw,18px);height:auto;display:block;
+  opacity:.92;filter:saturate(1.02) drop-shadow(0 1px 2px rgba(0,0,0,.6));}
 .rail-rnd{font-weight:700;font-size:9px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase;}
 
 /* ══════ TEAM BARS (top = opponent, bottom = you) ══════ */
@@ -516,6 +523,10 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
   <img class="lobby-map" src="art/hormuz-land.webp" alt="" aria-hidden="true">
   <img src="ww4-logo.png" alt="World War 4" style="width:min(260px,75vw);height:auto;border-radius:10px;margin-bottom:8px;filter:drop-shadow(0 4px 24px rgba(192,57,43,.55));animation:svgglow 3s ease-in-out infinite;">
   <div class="s-sub">Multiplayer</div>
+  <div class="lobby-flags" aria-hidden="true">
+    <img src="art/flag-usa.webp" alt=""><img src="art/flag-il.webp" alt=""><img src="art/flag-tw.webp" alt="">
+    <img src="art/flag-ru.webp" alt=""><img src="art/flag-cn.webp" alt=""><img src="art/flag-ir.webp" alt="">
+  </div>
   <div class="s-box">
     <div class="s-lbl">Your Call Sign</div>
     <input class="s-input" id="inp-name" type="text" placeholder="Enter your name" maxlength="14" autocomplete="off" autocorrect="off" spellcheck="false">
@@ -582,7 +593,14 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 <!-- GAME -->
 <div id="game" class="screen">
   <div class="rail">
-    <div class="rail-mid"><div class="rail-logo">WW4</div><div class="rail-rnd" id="rnd-lbl">Round 1</div></div>
+    <div class="rail-mid">
+      <div class="rail-logo">WORLD WAR 4</div>
+      <div class="rail-flags" aria-hidden="true">
+        <img src="art/flag-usa.webp" alt=""><img src="art/flag-il.webp" alt=""><img src="art/flag-tw.webp" alt="">
+        <img src="art/flag-ru.webp" alt=""><img src="art/flag-cn.webp" alt=""><img src="art/flag-ir.webp" alt="">
+      </div>
+      <div class="rail-rnd" id="rnd-lbl">Round 1</div>
+    </div>
   </div>
   <div class="ante-strip" id="ante-strip">
     <div class="ante-lbl" id="ante-lbl">⚡ World War 4</div>

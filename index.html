@@ -117,9 +117,16 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
   width:100%;min-height:clamp(72px,15vh,120px);margin-bottom:14px;}
 .s-mini-cloud{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);
   width:clamp(150px,44vw,230px);opacity:.34;filter:saturate(.85);pointer-events:none;}
-.s-mini-title{position:relative;font-family:'Bebas Neue',sans-serif;
+.s-mini-stack{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.s-mini-title{font-family:'Bebas Neue',sans-serif;line-height:1;
   font-size:clamp(24px,7.5vw,38px);letter-spacing:.05em;color:var(--cream);
   text-shadow:0 2px 16px rgba(0,0,0,.92),0 0 34px rgba(192,57,43,.4);}
+.s-mini-sub{font-weight:700;font-size:clamp(8px,2.4vw,10px);letter-spacing:.36em;
+  text-transform:uppercase;color:var(--gold);opacity:.9;
+  text-shadow:0 1px 8px rgba(0,0,0,.95);}
+.s-mini-flags{display:flex;gap:clamp(4px,1.6vw,8px);margin-top:5px;}
+.s-mini-flags img{width:clamp(20px,6.5vw,30px);height:auto;display:block;
+  filter:saturate(1.02) drop-shadow(0 2px 6px rgba(0,0,0,.7));}
 
 /* ── Composited title backdrop ── */
 .s-bg{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
@@ -274,8 +281,13 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 .rail::before{content:'';position:absolute;inset:0 0 3px 0;
   background:linear-gradient(180deg,rgba(255,255,255,.07) 0%,transparent 100%);pointer-events:none;}
 .rail-mid{display:flex;flex-direction:column;align-items:center;}
-.rail-logo{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.16em;
-  color:var(--cream);text-shadow:2px 2px 0 var(--red);}
+/* Matches the card back's lockup: full wordmark over the six-flag row, rather
+   than the bare "WW4" it used to show. */
+.rail-logo{font-family:'Bebas Neue',sans-serif;font-size:clamp(19px,6vw,26px);
+  letter-spacing:.1em;line-height:1;color:var(--cream);text-shadow:2px 2px 0 var(--red);}
+.rail-flags{display:flex;gap:clamp(3px,1.2vw,6px);margin:3px 0 2px;}
+.rail-flags img{width:clamp(13px,4vw,18px);height:auto;display:block;
+  opacity:.92;filter:saturate(1.02) drop-shadow(0 1px 2px rgba(0,0,0,.6));}
 .rail-rnd{font-weight:700;font-size:9px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase;}
 
 /* ══════ TEAM BARS (top = opponent, bottom = you) ══════ */
@@ -1039,7 +1051,16 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 
   <div class="s-mini">
     <img class="s-mini-cloud" src="art/cloud.webp" alt="" aria-hidden="true">
-    <div class="s-mini-title">WORLD WAR 4</div>
+    <div class="s-mini-stack">
+      <div class="s-mini-title">WORLD WAR 4</div>
+      <div class="s-mini-sub">The Card Game</div>
+      <!-- The six nations went to the splash when the screens were split and
+           never came back here. Same lockup as the card back. -->
+      <div class="s-mini-flags" aria-hidden="true">
+        <img src="art/flag-usa.webp" alt=""><img src="art/flag-il.webp" alt=""><img src="art/flag-tw.webp" alt="">
+        <img src="art/flag-ru.webp" alt=""><img src="art/flag-cn.webp" alt=""><img src="art/flag-ir.webp" alt="">
+      </div>
+    </div>
   </div>
 
   <div class="s-box">
@@ -1059,7 +1080,14 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 <!-- GAME -->
 <div id="game" class="screen">
   <div class="rail">
-    <div class="rail-mid"><div class="rail-logo">WW4</div><div class="rail-rnd" id="rnd-lbl">Round 1</div></div>
+    <div class="rail-mid">
+      <div class="rail-logo">WORLD WAR 4</div>
+      <div class="rail-flags" aria-hidden="true">
+        <img src="art/flag-usa.webp" alt=""><img src="art/flag-il.webp" alt=""><img src="art/flag-tw.webp" alt="">
+        <img src="art/flag-ru.webp" alt=""><img src="art/flag-cn.webp" alt=""><img src="art/flag-ir.webp" alt="">
+      </div>
+      <div class="rail-rnd" id="rnd-lbl">Round 1</div>
+    </div>
   </div>
   <div class="ante-strip" id="ante-strip">
     <div class="ante-lbl" id="ante-lbl">War Antes</div>
