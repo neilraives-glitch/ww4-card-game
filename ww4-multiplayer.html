@@ -299,7 +299,7 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 .xl .cf-rank{font-size:54px;}.xl .cf-word{font-size:16px;}.xl .cf-nation{font-size:12px;}
 .xl .cff{font-size:14px;}.xl .cb-exp{font-size:22px;}.xl .cb-ww4{font-size:10px;}
 
-.card.back{background-image:url('cards/back.webp');background-size:cover;background-position:center;
+.card.back{background-size:cover;background-position:center;
   border:2px solid rgba(230,220,200,.35);}
 
 .card.face{display:flex;flex-direction:column;position:relative;overflow:hidden;border:none;}
@@ -1806,8 +1806,11 @@ function triggerWW4Explosion(cb){
 /* ══════════════════════════════════════════
    CARD RENDERING
 ══════════════════════════════════════════ */
+const ART_V=2;
+
 function mkBack(sz='lg'){
   const el=document.createElement('div'); el.className=`card back ${sz}`;
+  el.style.backgroundImage=`url('cards/back.webp?v=${ART_V}')`;
   return el;
 }
 function mkFace(c,sz='lg',anim=false){
@@ -1815,10 +1818,13 @@ function mkFace(c,sz='lg',anim=false){
   const nation=c.joker?'joker':c.nation;
   el.className=`card face ${nation} ${sz}${anim?' flip-in':''}`;
   if(c.joker){
-    el.innerHTML=`<div class="cf-inner"><div class="cf-nation">☢ JOKER</div><div class="cf-rank">💥<br>WW4</div><div class="cf-word">AUTO WIN</div></div>`;
+    // Real artwork now, matching index.html and the nation cards.
+    el.classList.add('art');
+    el.style.backgroundImage=`url('cards/joker.webp?v=${ART_V}')`;
+    el.innerHTML=`<div class="cf-corner">☢</div>`;
   } else {
     el.classList.add('art');
-    el.style.backgroundImage=`url('cards/${c.nation}_${c.r}.webp')`;
+    el.style.backgroundImage=`url('cards/${c.nation}_${c.r}.webp?v=${ART_V}')`;
     el.innerHTML=`<div class="cf-corner">${c.r}</div>`;
   }
   return el;

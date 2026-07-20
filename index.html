@@ -510,7 +510,7 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 .xl .cf-jcloud{font-size:26px;}
 
 /* ── CARD BACK ── */
-.card.back{background-image:url('cards/back.webp');background-size:cover;background-position:center;
+.card.back{background-size:cover;background-position:center;
   border:2px solid rgba(230,220,200,.35);}
 
 /* ── CARD FACE — country-color design ── */
@@ -1160,10 +1160,16 @@ function mkDeck(){
 }
 function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=0|Math.random()*(i+1);[b[i],b[j]]=[b[j],b[i]];}return b;}
 
+/* Bump when any file under cards/ is replaced. Netlify serves images with a
+   long default cache, so reusing a filename leaves returning players on the
+   old artwork — the new card back did exactly that in testing. */
+const ART_V=2;
+
 /* ── card builders ── */
 function mkBack(sz='lg'){
   const el=document.createElement('div');
   el.className=`card back ${sz}`;
+  el.style.backgroundImage=`url('cards/back.webp?v=${ART_V}')`;
   return el;
 }
 
@@ -1172,10 +1178,14 @@ function mkFace(c, sz='lg', anim=false){
   const nation=c.joker?'joker':c.nation;
   el.className=`card face ${nation} ${sz}${anim?' flip-in':''}`;
   if(c.joker){
-    el.innerHTML=`<div class="cf-inner"><div class="cf-nation">☢ JOKER</div><div class="cf-rank">💥<br>WW4</div><div class="cf-word">AUTO WIN</div></div>`;
+    // Real artwork now, same treatment as the nation cards — it used to be
+    // emoji over a gradient, which read as a placeholder next to them.
+    el.classList.add('art');
+    el.style.backgroundImage=`url('cards/joker.webp?v=${ART_V}')`;
+    el.innerHTML=`<div class="cf-corner">☢</div>`;
   } else {
     el.classList.add('art');
-    el.style.backgroundImage=`url('cards/${c.nation}_${c.r}.webp')`;
+    el.style.backgroundImage=`url('cards/${c.nation}_${c.r}.webp?v=${ART_V}')`;
     el.innerHTML=`<div class="cf-corner">${c.r}</div>`;
   }
   return el;
