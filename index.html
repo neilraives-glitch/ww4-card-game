@@ -2,17 +2,22 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<!-- iOS is the primary target: iPhone has no install prompt, so Add to Home
+     Screen is the delivery path and these tags are what make it behave like an
+     app — standalone chrome, a real icon, and a proper name under it.
+     black-translucent lets the dark board run under the status bar; the rails
+     carry env(safe-area-inset-*) padding so nothing hides beneath it. -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="WW4">
-<meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#c0392b">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <title>WW4</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link href="fonts.css" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 
@@ -102,7 +107,7 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 #splash .s-title{padding:0 clamp(60px, 19vw, 112px);}
 #splash .s-title-main{font-size:clamp(26px,8.8vw,54px);white-space:nowrap;}
 
-.s-tap{position:absolute;left:0;right:0;bottom:clamp(28px,7vh,64px);
+.s-tap{position:absolute;left:0;right:0;bottom:calc(clamp(28px,7vh,64px) + env(safe-area-inset-bottom));
   text-align:center;font-weight:700;font-size:11px;letter-spacing:.34em;
   text-transform:uppercase;color:rgba(237,230,213,.62);
   animation:tapPulse 2.1s ease-in-out infinite;}
@@ -265,17 +270,34 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
   transition:filter .14s, transform .14s;}
 .s-deploy:hover{filter:brightness(1.1);}
 .s-deploy:active{filter:brightness(.92);transform:translateY(1px);}
-.s-abilities{width:100%;max-width:360px;text-align:center;margin-top:10px;
-  font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:.04em;color:rgba(255,255,255,.4);}
-.s-abilities .ab-usa{color:var(--usa-acc);}
-.s-abilities .ab-ru{color:var(--ru-acc);}
-.s-abilities .ab-sep{margin:0 6px;color:rgba(255,255,255,.25);}
+/* Secondary to DEPLOY: outlined rather than filled, so the singleplayer path
+   still reads as primary while multiplayer stops being invisible. */
+.s-multi{width:100%;max-width:330px;margin-top:8px;padding:9px 14px;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  text-decoration:none;cursor:pointer;
+  background:rgba(0,0,0,.28);border:1px solid rgba(200,168,75,.42);
+  transition:background .15s,border-color .15s;}
+.s-multi:hover{background:rgba(200,168,75,.10);border-color:rgba(200,168,75,.7);}
+.s-multi:active{transform:translateY(1px);}
+.s-multi-main{font-family:'Bebas Neue',sans-serif;font-size:17px;
+  letter-spacing:.16em;color:var(--cream);line-height:1;}
+.s-multi-sub{font-family:'Barlow Condensed',sans-serif;font-weight:400;font-size:9px;
+  letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);}
+
+/* Tertiary to DEPLOY and multiplayer: a quiet text link, but always present. */
+.s-rules{margin-top:11px;font-family:'Barlow Condensed',sans-serif;font-weight:700;
+  font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:rgba(200,168,75,.72);text-decoration:none;padding:6px 4px;
+  transition:color .15s;}
+.s-rules:hover{color:var(--gold);}
+
 
 /* ══════════ GAME ══════════ */
 #game{position:relative;overflow:hidden;}
 
 .rail{background:linear-gradient(180deg,var(--wood2) 0%,var(--wood) 55%,var(--wood3) 100%);
   border-bottom:3px solid rgba(0,0,0,.7);padding:7px 14px;
+  padding-top:calc(7px + env(safe-area-inset-top));
   display:flex;align-items:center;justify-content:center;
   flex-shrink:0;box-shadow:0 3px 16px rgba(0,0,0,.6);position:relative;z-index:5;}
 .rail::before{content:'';position:absolute;inset:0 0 3px 0;
@@ -289,6 +311,22 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 .rail-flags img{width:clamp(13px,4vw,18px);height:auto;display:block;
   opacity:.92;filter:saturate(1.02) drop-shadow(0 1px 2px rgba(0,0,0,.6));}
 .rail-rnd{font-weight:700;font-size:9px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase;}
+/* Absolute so the wordmark stays optically centred in the rail. 40px keeps the
+   tap target at the Android minimum without crowding the lockup. */
+.rail-btn{position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  width:40px;height:40px;display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.28);border:1px solid rgba(200,168,75,.3);
+  font-size:17px;line-height:1;cursor:pointer;color:var(--cream);
+  border-radius:3px;transition:background .15s,border-color .15s;z-index:2;}
+.rail-btn:hover{background:rgba(200,168,75,.14);border-color:rgba(200,168,75,.6);}
+.rail-btn:active{transform:translateY(-50%) scale(.94);}
+/* Quit mirrors the sound toggle on the opposite side of the rail. A game can
+   run a hundred rounds; before this the only way out was closing the tab —
+   which in multiplayer left the room orphaned with the other player waiting. */
+.rail-btn.left{left:10px;right:auto;}
+.rail-btn.arm{background:rgba(192,57,43,.85);border-color:#e8836f;color:#fff;
+  width:auto;padding:0 11px;font-family:'Bebas Neue',sans-serif;font-size:14px;
+  letter-spacing:.12em;}
 
 /* ══════ TEAM BARS (top = opponent, bottom = you) ══════ */
 .team-bar{position:relative;width:100%;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;
@@ -317,6 +355,7 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 
 .action-rail{background:linear-gradient(0deg,var(--wood2) 0%,var(--wood) 55%,var(--wood3) 100%);
   border-top:3px solid rgba(0,0,0,.7);padding:10px 14px 14px;
+  padding-bottom:calc(14px + env(safe-area-inset-bottom));
   display:flex;flex-direction:column;gap:5px;flex-shrink:0;
   box-shadow:0 -3px 16px rgba(0,0,0,.5);position:relative;z-index:5;}
 .action-rail::before{content:'';position:absolute;inset:3px 0 0 0;
@@ -326,7 +365,11 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
   cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);
   transition:all .14s;position:relative;z-index:1;}
 .flip-btn:active{opacity:.8;transform:scale(.98);}
-.flip-btn:disabled{background:rgba(255,255,255,.08);color:rgba(255,255,255,.22);clip-path:none;cursor:not-allowed;}
+/* .22 on a .08 fill left "ROUND OVER" and "WAITING..." all but unreadable on a
+   phone — legibly disabled, not invisible. */
+.flip-btn:disabled{background:rgba(255,255,255,.06);color:rgba(237,230,213,.62);
+  clip-path:none;cursor:not-allowed;border:1px solid rgba(237,230,213,.16);
+  letter-spacing:.2em;}
 .flip-btn.war{background:linear-gradient(90deg,#7a0000,#c0392b,#7a0000);
   background-size:200%;animation:warscroll 1.1s linear infinite;}
 @keyframes warscroll{0%{background-position:0%}100%{background-position:200%}}
@@ -417,7 +460,7 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 .ctr-sub{font-weight:700;font-size:8px;letter-spacing:.3em;text-transform:uppercase;
   color:rgba(255,255,255,.09);pointer-events:none;user-select:none;}
 .flip-slots{display:flex;gap:8px;align-items:center;justify-content:center;}
-.slot-empty{width:var(--cw-lg);height:calc(var(--cw-lg)*1.393);border-radius:6px;border:2px dashed rgba(255,255,255,.1);
+.slot-empty{width:var(--cw-lg);height:calc(var(--cw-lg)*1.401);border-radius:6px;border:2px dashed rgba(255,255,255,.1);
   display:flex;align-items:center;justify-content:center;}
 .slot-lbl{font-weight:700;font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.12);}
 .pot-pill{background:rgba(0,0,0,.38);border:1px solid rgba(200,168,75,.32);border-radius:20px;
@@ -506,12 +549,12 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 .card{border-radius:5px;overflow:hidden;flex-shrink:0;
   box-shadow:0 3px 12px rgba(0,0,0,.65);position:relative;}
 /* Card widths are variables so narrow viewports can scale the whole set down
-   in one place. Height is derived — every size shares a ~1.393 aspect ratio. */
-.xl{width:var(--cw-xl);height:calc(var(--cw-xl)*1.393);border-radius:8px;}
-.lg{width:var(--cw-lg);height:calc(var(--cw-lg)*1.393);}
-.md{width:var(--cw-md);height:calc(var(--cw-md)*1.393);border-radius:4px;}
-.sm{width:var(--cw-sm);height:calc(var(--cw-sm)*1.393);border-radius:3px;}
-.xs{width:var(--cw-xs);height:calc(var(--cw-xs)*1.393);border-radius:2px;}
+   in one place. Height is derived — every size shares a ~1.401 aspect ratio. */
+.xl{width:var(--cw-xl);height:calc(var(--cw-xl)*1.401);border-radius:8px;}
+.lg{width:var(--cw-lg);height:calc(var(--cw-lg)*1.401);}
+.md{width:var(--cw-md);height:calc(var(--cw-md)*1.401);border-radius:4px;}
+.sm{width:var(--cw-sm);height:calc(var(--cw-sm)*1.401);border-radius:3px;}
+.xs{width:var(--cw-xs);height:calc(var(--cw-xs)*1.401);border-radius:2px;}
 /* xl card font overrides */
 .xl .cf-rank{font-size:54px;}
 .xl .cf-word{font-size:16px;}
@@ -659,6 +702,11 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   pointer-events:none;z-index:50;
   opacity:0;
+  /* Sinks the board behind the blast. Without it the wordmark landed straight
+     across a card face and neither one could be read. Fades in and out with
+     the overlay, so the cards are only dimmed for the ~1s the blast lasts. */
+  background:rgba(5,8,6,.66);
+  -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
 }
 .ww4-blast.boom{animation:blastIn .12s ease forwards;}
 .ww4-blast.fade{animation:blastOut .6s ease forwards;}
@@ -699,18 +747,24 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 }
 @keyframes flashOut{0%{opacity:1;}100%{opacity:0;}}
 
-/* Big emoji */
+/* The game's own mushroom cloud, not a generic emoji — same art as the splash,
+   so the biggest moment on the board is branded rather than borrowed. */
 .blast-center{
-  font-size:80px;line-height:1;
+  width:clamp(130px,44vw,240px);height:auto;display:block;
   position:relative;z-index:2;
-  animation:boomPop .4s cubic-bezier(.2,1.6,.4,1) forwards;
-  transform:scale(0);
-  filter:drop-shadow(0 0 20px rgba(255,150,0,.8));
+  transform:scale(1);
+  filter:drop-shadow(0 0 26px rgba(255,150,0,.75)) drop-shadow(0 6px 18px rgba(0,0,0,.6));
 }
+/* Gated on .boom like the rings are. Declared on the element itself it ran once
+   when the board first rendered and never again, which left the cloud frozen at
+   the opening keyframe for every actual explosion. */
+.ww4-blast.boom .blast-center{animation:boomPop .45s cubic-bezier(.2,1.6,.4,1) forwards;}
+/* Rises as it swells, the way the cloud does — no rotation, which read as a
+   wobbling sticker once this became real artwork rather than a glyph. */
 @keyframes boomPop{
-  0%{transform:scale(0) rotate(-15deg);opacity:0;}
-  60%{transform:scale(1.3) rotate(5deg);opacity:1;}
-  100%{transform:scale(1) rotate(0deg);opacity:1;}
+  0%{transform:scale(.2) translateY(18px);opacity:0;}
+  60%{transform:scale(1.12) translateY(-6px);opacity:1;}
+  100%{transform:scale(1) translateY(0);opacity:1;}
 }
 
 /* WW4 text slam */
@@ -722,9 +776,12 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
   text-shadow:0 0 30px rgba(255,100,40,.8),3px 3px 0 rgba(0,0,0,.6);
   position:relative;z-index:2;
   margin-top:8px;
-  transform:scale(0);
-  animation:textSlam .35s cubic-bezier(.15,1.4,.4,1) .2s forwards;
+  transform:scale(1);
 }
+/* Same gating as the cloud. No start delay: with the animation gated, a delay
+   would leave the wordmark sitting at full size for 200ms before slamming,
+   which reads as a stutter rather than an entrance. */
+.ww4-blast.boom .blast-text{animation:textSlam .38s cubic-bezier(.15,1.4,.4,1) forwards;}
 @keyframes textSlam{
   0%{transform:scale(2.5);opacity:0;}
   100%{transform:scale(1);opacity:1;}
@@ -811,6 +868,24 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 /* Cards fly into the pot before the next round */
 .card.collect{animation:collectFly .3s ease-in forwards;pointer-events:none;}
 @keyframes collectFly{to{transform:translate(var(--dx,0),var(--dy,0)) scale(.2) rotate(12deg);opacity:0;}}
+/* ══════ WIDE VIEWPORTS ══════
+   The board is designed portrait-first for phones, and nothing capped its width
+   above that. On a desktop monitor the score bars stretched the full ~1900px
+   with the team name pinned to one edge and the score to the other, a 112px
+   card floated in a 900px column, and the FLIP bar ran the whole screen — it
+   read as a stretched web page rather than a table. Constrain the play area to
+   a board-shaped column, centred, and let the cards grow into the space. */
+@media (min-width:431px){
+  .table-inner{max-width:var(--board-w,720px);margin:0 auto;width:100%;}
+  .action-rail{align-items:center;}
+  .flip-btn,.status{width:100%;max-width:var(--board-w,720px);}
+}
+/* Real desktop room: scale the whole card set up so the board fills the column
+   it now sits in. Ratios match the base set (lg .589, md .464, sm .393, xs .241). */
+@media (min-width:768px) and (min-height:700px){
+  :root{--cw-xl:150px; --cw-lg:88px; --cw-md:70px; --cw-sm:59px; --cw-xs:36px;}
+}
+
 /* ══════ NARROW VIEWPORTS ══════
    The battle row lays the two card columns side by side with the result panel
    between them. At default card sizes that row is wider than a phone screen,
@@ -863,7 +938,7 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
    slid under the action rail. Reclaim height from the chrome instead of shrinking
    cards further — that keeps the floor viable and the board readable. */
 @media (max-width:430px) and (max-height:620px){
-  .action-rail{padding:6px 12px 8px;gap:3px;}
+  .action-rail{padding:6px 12px 8px;padding-bottom:calc(8px + env(safe-area-inset-bottom));gap:3px;}
   .flip-btn{font-size:17px;padding:9px;}
   .status{font-size:9px;}
   .table-inner{padding:4px 8px;gap:2px;}
@@ -875,13 +950,109 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
 }
 /* No further width breakpoints needed — the clamp is driven by available height
    and capped by 34vw, so it covers small phones and short viewports alike. */
+
+/* ══════════ WAR OVER — full-screen victory / defeat ══════════ */
+/* The end of a whole game used to reuse the tiny inline round panel, so winning
+   the war read the same as winning one of a hundred rounds. This is the game's
+   one big moment, so it gets the whole screen — in the same language as the rest
+   of the board (Bebas Neue, gold/red/cream, the blast-ring + particle motifs). */
+.war-over{position:fixed;inset:0;z-index:200;display:none;
+  flex-direction:column;align-items:center;justify-content:center;
+  padding:40px 16px;text-align:center;overflow:hidden;opacity:0;}
+.war-over.show{display:flex;animation:woIn .5s ease forwards;}
+@keyframes woIn{to{opacity:1;}}
+/* Backdrop tone follows the outcome — warm gold for a win, cold and drained for a loss. */
+.war-over.win{background:
+  radial-gradient(ellipse 92% 62% at 50% 42%, rgba(120,86,20,.55) 0%, transparent 62%),
+  linear-gradient(180deg,#0d1008 0%,#080a06 60%,#050604 100%);}
+.war-over.lose{background:
+  radial-gradient(ellipse 92% 62% at 50% 42%, rgba(70,20,20,.5) 0%, transparent 62%),
+  linear-gradient(180deg,#0a0c10 0%,#07080a 60%,#040507 100%);}
+
+/* Expanding rings — the blast-ring feel, one-shot, tuned per outcome. */
+.wo-rings{position:absolute;top:42%;left:50%;transform:translate(-50%,-50%);pointer-events:none;}
+.wo-ring{position:absolute;top:0;left:0;border-radius:50%;transform:translate(-50%,-50%) scale(0);}
+.war-over.show .wo-ring{animation:woRing 1.4s cubic-bezier(.2,.7,.3,1) forwards;}
+.war-over.win  .wo-ring{border:2px solid rgba(200,168,75,.6);}
+.war-over.lose .wo-ring{border:1px solid rgba(192,57,43,.4);}
+.wo-ring.a{width:180px;height:180px;}
+.wo-ring.b{width:320px;height:320px;animation-delay:.1s !important;}
+.wo-ring.c{width:480px;height:480px;animation-delay:.2s !important;}
+@keyframes woRing{0%{transform:translate(-50%,-50%) scale(0);opacity:.9;}
+  100%{transform:translate(-50%,-50%) scale(1);opacity:0;}}
+
+/* Falling confetti — win only. Reuses the spark spawn pattern from the WW4 blast. */
+.wo-particles{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+.confetti{position:absolute;top:-16px;width:8px;height:14px;opacity:0;
+  animation:confFall var(--d,3s) linear var(--delay,0s) forwards;}
+@keyframes confFall{
+  0%{opacity:0;transform:translateY(-10px) rotate(0deg);}
+  8%{opacity:1;}
+  100%{opacity:0;transform:translateY(105vh) rotate(var(--spin,540deg));}}
+
+.wo-inner{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;
+  max-width:420px;width:100%;animation:woRise .6s cubic-bezier(.2,1,.3,1) .12s both;}
+@keyframes woRise{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+
+.wo-eyebrow{font-weight:700;font-size:11px;letter-spacing:.42em;text-transform:uppercase;
+  color:var(--gold);opacity:.85;margin-bottom:14px;text-shadow:0 1px 10px rgba(0,0,0,.9);}
+.war-over.lose .wo-eyebrow{color:rgba(224,61,61,.82);}
+
+.wo-title{font-family:'Bebas Neue',sans-serif;line-height:.9;letter-spacing:.03em;
+  white-space:nowrap;font-size:clamp(44px,15vw,104px);}
+.war-over.win .wo-title{color:var(--cream);
+  text-shadow:0 2px 24px rgba(0,0,0,.9),0 0 60px rgba(200,168,75,.5);
+  animation:woSlam .5s cubic-bezier(.15,1.5,.4,1) .18s both;}
+.war-over.lose .wo-title{color:var(--red);
+  text-shadow:0 2px 24px rgba(0,0,0,.95),0 0 44px rgba(192,57,43,.4);
+  animation:woSlam .6s ease .2s both;}
+@keyframes woSlam{from{opacity:0;transform:scale(1.5);}to{opacity:1;transform:scale(1);}}
+
+.wo-rule{height:2px;width:96px;margin:14px 0 12px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.war-over.lose .wo-rule{background:linear-gradient(90deg,transparent,rgba(192,57,43,.7),transparent);}
+
+.wo-team{font-family:'Bebas Neue',sans-serif;font-size:clamp(18px,5vw,26px);
+  letter-spacing:.16em;line-height:1.1;}
+.war-over.win  .wo-team{color:var(--gold);}
+.war-over.lose .wo-team{color:rgba(224,61,61,.9);}
+
+.wo-stats{display:flex;gap:8px;margin-top:22px;flex-wrap:wrap;justify-content:center;}
+.wo-stat{background:rgba(0,0,0,.4);border:1px solid rgba(200,168,75,.3);padding:8px 16px;min-width:104px;}
+.war-over.lose .wo-stat{border-color:rgba(255,255,255,.14);}
+.wo-stat-v{font-family:'Bebas Neue',sans-serif;font-size:27px;line-height:1;color:var(--cream);}
+.wo-stat-l{font-weight:700;font-size:8px;letter-spacing:.2em;text-transform:uppercase;
+  color:rgba(255,255,255,.42);margin-top:4px;}
+
+.wo-btn{margin-top:30px;width:100%;max-width:300px;color:var(--cream);cursor:pointer;
+  font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.24em;padding:13px 14px;
+  background:linear-gradient(180deg,#a83224 0%,#8f2419 55%,#731a11 100%);
+  border:1px solid rgba(200,168,75,.55);border-top-color:rgba(214,186,110,.85);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),inset 0 -2px 0 rgba(0,0,0,.32),0 4px 18px rgba(0,0,0,.5);
+  transition:filter .14s,transform .14s;}
+.wo-btn:hover{filter:brightness(1.1);}
+.wo-btn:active{filter:brightness(.92);transform:translateY(1px);}
+
+/* Keyboard focus was invisible everywhere — the app relied on browser defaults,
+   which the dark board swallows. A single gold ring, keyboard-only. */
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+
+@media(prefers-reduced-motion:reduce){
+  .war-over.show,.war-over.show .wo-ring,.wo-inner,
+  .war-over .wo-title,.confetti{animation:none;}
+  .war-over.show{opacity:1;}
+  .wo-inner{opacity:1;transform:none;}
+  .war-over .wo-title{opacity:1;transform:none;}
+  .confetti{display:none;}
+}
 </style>
 </head>
 <body>
 
 <!-- SETUP -->
 <!-- SPLASH — artwork gets the whole screen; tap anywhere to continue -->
-<div id="splash" class="screen active" onclick="leaveSplash()">
+<div id="splash" class="screen active" role="button" tabindex="0"
+     aria-label="Begin — tap anywhere, or press Enter" onclick="leaveSplash()">
   <!-- Strait of Hormuz sits behind everything as the ground plane. -->
   <div class="s-bg" aria-hidden="true"></div>
 
@@ -930,139 +1101,6 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
     </defs>
   </svg>
 
-  <!-- DEAD CODE BELOW — kept for reference, skip to s-box -->
-  <svg style="display:none" viewBox="0 0 340 220" xmlns="http://www.w3.org/2000/svg">
-    <g transform="translate(18,8)">
-      <rect width="52" height="34" rx="3" fill="#0a1628" stroke="#c8102e" stroke-width="1.5"/>
-      <rect x="0" y="0" width="52" height="5" rx="2" fill="#c8102e"/>
-      <rect x="0" y="10" width="52" height="5" fill="#c8102e"/>
-      <rect x="0" y="20" width="52" height="5" fill="#c8102e"/>
-      <rect x="0" y="30" width="52" height="4" rx="2" fill="#c8102e"/>
-      <!-- canton -->
-      <rect x="0" y="0" width="22" height="20" rx="2" fill="#3c3b6e"/>
-      <!-- stars (simplified dots) -->
-      <circle cx="4" cy="4" r="1.2" fill="white"/><circle cx="9" cy="4" r="1.2" fill="white"/><circle cx="14" cy="4" r="1.2" fill="white"/><circle cx="19" cy="4" r="1.2" fill="white"/>
-      <circle cx="6.5" cy="8" r="1.2" fill="white"/><circle cx="11.5" cy="8" r="1.2" fill="white"/><circle cx="16.5" cy="8" r="1.2" fill="white"/>
-      <circle cx="4" cy="12" r="1.2" fill="white"/><circle cx="9" cy="12" r="1.2" fill="white"/><circle cx="14" cy="12" r="1.2" fill="white"/><circle cx="19" cy="12" r="1.2" fill="white"/>
-      <circle cx="6.5" cy="16" r="1.2" fill="white"/><circle cx="11.5" cy="16" r="1.2" fill="white"/><circle cx="16.5" cy="16" r="1.2" fill="white"/>
-      <text x="26" y="29" font-family="'Bebas Neue',sans-serif" font-size="8" fill="#c8102e" letter-spacing="1">USA</text>
-    </g>
-
-    <!-- CHINA flag card — top center -->
-    <g transform="translate(144,2)">
-      <rect width="52" height="34" rx="3" fill="#de2910" stroke="#ffd700" stroke-width="1.5"/>
-      <!-- large star -->
-      <polygon points="14,6 15.5,11 20,11 16.5,14 17.8,19 14,16 10.2,19 11.5,14 8,11 12.5,11" fill="#ffd700"/>
-      <!-- small stars -->
-      <polygon points="22,4 22.9,6.8 25.8,6.8 23.5,8.5 24.3,11.3 22,9.6 19.7,11.3 20.5,8.5 18.2,6.8 21.1,6.8" fill="#ffd700" transform="scale(0.6) translate(17,2)"/>
-      <polygon points="22,4 22.9,6.8 25.8,6.8 23.5,8.5 24.3,11.3 22,9.6 19.7,11.3 20.5,8.5 18.2,6.8 21.1,6.8" fill="#ffd700" transform="scale(0.6) translate(26,-2)"/>
-      <polygon points="22,4 22.9,6.8 25.8,6.8 23.5,8.5 24.3,11.3 22,9.6 19.7,11.3 20.5,8.5 18.2,6.8 21.1,6.8" fill="#ffd700" transform="scale(0.6) translate(30,6)"/>
-      <text x="26" y="29" font-family="'Bebas Neue',sans-serif" font-size="8" fill="#ffd700" letter-spacing="1" text-anchor="middle">CHINA</text>
-    </g>
-
-    <!-- RUSSIA flag card — top right -->
-    <g transform="translate(270,8)">
-      <rect width="52" height="34" rx="3" fill="#1a1a2e" stroke="#0039a6" stroke-width="1.5"/>
-      <rect x="1.5" y="1.5" width="49" height="10" rx="2" fill="white"/>
-      <rect x="1.5" y="12" width="49" height="10" fill="#0039a6"/>
-      <rect x="1.5" y="22" width="49" height="10.5" rx="2" fill="#d52b1e"/>
-      <text x="26" y="29" font-family="'Bebas Neue',sans-serif" font-size="8" fill="white" letter-spacing="1" text-anchor="middle" opacity="0.9">RUSSIA</text>
-    </g>
-
-    <!-- Bottom row: IRAN · ISRAEL · TAIWAN -->
-    <!-- IRAN — bottom left -->
-    <g transform="translate(18,178)">
-      <rect width="52" height="34" rx="3" fill="#0a1a0a" stroke="#239f40" stroke-width="1.5"/>
-      <rect x="1.5" y="1.5" width="49" height="10" rx="2" fill="#239f40"/>
-      <rect x="1.5" y="12" width="49" height="10" fill="white"/>
-      <rect x="1.5" y="22" width="49" height="10.5" rx="2" fill="#da0000"/>
-      <text x="26" y="27" font-family="'Bebas Neue',sans-serif" font-size="8" fill="#0a1a0a" letter-spacing="1" text-anchor="middle">IRAN</text>
-    </g>
-
-    <!-- ISRAEL — bottom center -->
-    <g transform="translate(144,184)">
-      <rect width="52" height="34" rx="3" fill="white" stroke="#0038b8" stroke-width="1.5"/>
-      <rect x="1.5" y="7" width="49" height="5" fill="#0038b8"/>
-      <rect x="1.5" y="22" width="49" height="5" fill="#0038b8"/>
-      <!-- Star of David simplified -->
-      <polygon points="26,11 29,16 23,16" fill="none" stroke="#0038b8" stroke-width="1.2"/>
-      <polygon points="26,21 23,16 29,16" fill="none" stroke="#0038b8" stroke-width="1.2"/>
-      <text x="26" y="32" font-family="'Bebas Neue',sans-serif" font-size="7" fill="#0038b8" letter-spacing="0.5" text-anchor="middle">ISRAEL</text>
-    </g>
-
-    <!-- TAIWAN — bottom right -->
-    <g transform="translate(270,178)">
-      <rect width="52" height="34" rx="3" fill="#fe0000" stroke="#000095" stroke-width="1.5"/>
-      <rect x="1.5" y="1.5" width="24" height="16" rx="2" fill="#000095"/>
-      <!-- sun rays simplified -->
-      <circle cx="13" cy="9" r="4" fill="white" opacity="0.9"/>
-      <circle cx="13" cy="9" r="2" fill="#000095"/>
-      <text x="34" y="29" font-family="'Bebas Neue',sans-serif" font-size="7" fill="white" letter-spacing="0.5" text-anchor="middle">TAIWAN</text>
-    </g>
-
-    <!-- ── BOMB icon center-left of WW4 ── -->
-    <g transform="translate(62,82)">
-      <!-- fuse spark -->
-      <circle cx="28" cy="6" r="4" fill="#ffdd00" opacity="0.9" filter="url(#ggold)"/>
-      <circle cx="28" cy="6" r="2.5" fill="white"/>
-      <!-- fuse line -->
-      <path d="M24,10 Q18,18 22,24" stroke="#c8a84b" stroke-width="2" fill="none" stroke-linecap="round"/>
-      <!-- bomb body -->
-      <circle cx="22" cy="38" r="18" fill="#1a1a1a" stroke="#444" stroke-width="2"/>
-      <circle cx="22" cy="38" r="18" fill="none" stroke="#555" stroke-width="0.5" opacity="0.5"/>
-      <!-- shine -->
-      <ellipse cx="15" cy="30" rx="5" ry="3" fill="white" opacity="0.12" transform="rotate(-30,15,30)"/>
-      <!-- band -->
-      <rect x="14" y="22" width="16" height="5" rx="2" fill="#333"/>
-      <!-- skull-ish X eyes -->
-      <text x="22" y="43" font-family="sans-serif" font-size="14" fill="#c0392b" text-anchor="middle" opacity="0.85">☠</text>
-    </g>
-
-    <!-- ── WW4 MAIN TEXT ── -->
-    <!-- Shadow layer -->
-    <text x="174" y="148" font-family="'Bebas Neue',sans-serif" font-size="100" letter-spacing="4"
-      fill="#8b0000" text-anchor="middle" opacity="0.6">WW4</text>
-    <!-- Main text -->
-    <text x="172" y="145" font-family="'Bebas Neue',sans-serif" font-size="100" letter-spacing="4"
-      fill="#ede6d5" text-anchor="middle" filter="url(#gred)">WW4</text>
-    <!-- Red accent stroke -->
-    <text x="172" y="145" font-family="'Bebas Neue',sans-serif" font-size="100" letter-spacing="4"
-      fill="none" stroke="#c0392b" stroke-width="1.5" text-anchor="middle" opacity="0.6">WW4</text>
-
-    <!-- ── WORLD WAR 4 subtitle bar ── -->
-    <rect x="60" y="155" width="222" height="18" rx="2" fill="rgba(192,57,43,0.15)" stroke="rgba(192,57,43,0.3)" stroke-width="1"/>
-    <text x="171" y="168" font-family="'Bebas Neue',sans-serif" font-size="13" letter-spacing="5"
-      fill="#c8a84b" text-anchor="middle" opacity="0.9">WORLD · WAR · 4</text>
-
-    <!-- Explosion lines radiating from center -->
-    <g opacity="0.18" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round">
-      <line x1="170" y1="55" x2="170" y2="30"/>
-      <line x1="215" y1="65" x2="232" y2="48"/>
-      <line x1="125" y1="65" x2="108" y2="48"/>
-      <line x1="230" y1="110" x2="255" y2="105"/>
-      <line x1="110" y1="110" x2="85" y2="105"/>
-    </g>
-  </svg>
-
-  <div class="s-bg s-bg-quiet" aria-hidden="true">
-    <img class="s-hormuz"      src="art/hormuz-land.webp" alt="">
-    <img class="s-hormuz-line" src="art/hormuz-line.webp" alt="">
-  </div>
-
-  <div class="s-mini">
-    <img class="s-mini-cloud" src="art/cloud.webp" alt="" aria-hidden="true">
-    <div class="s-mini-stack">
-      <div class="s-mini-title">WORLD WAR 4</div>
-      <div class="s-mini-sub">The Card Game</div>
-      <!-- The six nations went to the splash when the screens were split and
-           never came back here. Same lockup as the card back. -->
-      <div class="s-mini-flags" aria-hidden="true">
-        <img src="art/flag-usa.webp" alt=""><img src="art/flag-il.webp" alt=""><img src="art/flag-tw.webp" alt="">
-        <img src="art/flag-ru.webp" alt=""><img src="art/flag-cn.webp" alt=""><img src="art/flag-ir.webp" alt="">
-      </div>
-    </div>
-  </div>
-
   <div class="s-box">
     <div class="s-lbl">Your Call Sign</div>
     <input class="s-input" id="pname" type="text" placeholder="Enter your name"
@@ -1075,6 +1113,15 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
     <div class="s-mode"    id="m3v3" onclick="pickMode('3v3')">3v3<div class="s-mode-sub">You+2 vs 3 · 3 decks</div></div>
   </div>
   <button class="s-deploy" onclick="startGame()">⚔ DEPLOY</button>
+  <!-- The multiplayer page had no entry point at all — you had to know the
+       filename and type it. Secondary styling keeps DEPLOY the primary path. -->
+  <a class="s-multi" href="ww4-multiplayer.html">
+    <span class="s-multi-main">🌐 Play a friend online</span>
+    <span class="s-multi-sub">Create a room · share the code</span>
+  </a>
+  <!-- Nothing in the app explained the six abilities, so new players met them
+       only as jargon in a result message after the round was already lost. -->
+  <a class="s-rules" href="how-to-play.html">How to play &amp; nation abilities →</a>
 </div>
 
 <!-- GAME -->
@@ -1088,6 +1135,10 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
       </div>
       <div class="rail-rnd" id="rnd-lbl">Round 1</div>
     </div>
+    <button class="rail-btn left" id="quit-btn" onclick="onQuit()"
+            aria-label="Leave this game">✕</button>
+    <button class="rail-btn" id="sound-btn" onclick="toggleSound()"
+            aria-label="Sound on — tap to mute" aria-pressed="false">🔊</button>
   </div>
   <div class="ante-strip" id="ante-strip">
     <div class="ante-lbl" id="ante-lbl">War Antes</div>
@@ -1115,7 +1166,7 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
               <span class="tally-x">vs</span>
               <span class="tally-v a" id="tally-a">0</span>
             </div>
-            <div class="table-result" id="table-result">
+            <div class="table-result" id="table-result" role="status" aria-live="polite">
               <div class="tr-outcome" id="tr-outcome">VICTORY</div>
               <div class="tr-team"    id="tr-team"></div>
               <div class="tr-sub"     id="tr-sub"></div>
@@ -1134,7 +1185,7 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
         <div class="blast-ring r1"></div>
         <div class="blast-ring r2"></div>
         <div class="blast-ring r3"></div>
-        <div class="blast-center">💥</div>
+        <img class="blast-center" src="art/cloud.webp" alt="" aria-hidden="true">
         <div class="blast-text">WORLD WAR 4</div>
         <div class="blast-particles" id="blast-particles"></div>
       </div>
@@ -1142,10 +1193,33 @@ body{font-family:'Barlow Condensed',sans-serif;color:var(--cream);
   </div>
   <div class="action-rail">
     <button class="flip-btn" id="flip-btn" onclick="onFlip()">⚔ FLIP CARDS</button>
-    <div class="status" id="status-bar">Flip to play everyone's top card</div>
+    <!-- The board is all colour and motion; without this, nothing about a round
+         reaches a screen reader. polite so it waits for a pause rather than
+         interrupting. -->
+    <div class="status" id="status-bar" role="status" aria-live="polite">Flip to play everyone's top card</div>
   </div>
 </div>
 
+<!-- WAR OVER — full-screen end-of-game moment -->
+<div class="war-over" id="war-over" role="dialog" aria-modal="true" aria-labelledby="wo-title">
+  <div class="wo-rings" aria-hidden="true">
+    <div class="wo-ring a"></div><div class="wo-ring b"></div><div class="wo-ring c"></div>
+  </div>
+  <div class="wo-particles" id="wo-particles" aria-hidden="true"></div>
+  <div class="wo-inner">
+    <div class="wo-eyebrow" id="wo-eyebrow">The war is over</div>
+    <div class="wo-title" id="wo-title">CHAMPIONS</div>
+    <div class="wo-rule" aria-hidden="true"></div>
+    <div class="wo-team" id="wo-team"></div>
+    <div class="wo-stats">
+      <div class="wo-stat"><div class="wo-stat-v" id="wo-rounds">0</div><div class="wo-stat-l">Rounds fought</div></div>
+      <div class="wo-stat"><div class="wo-stat-v" id="wo-score">0&ndash;0</div><div class="wo-stat-l">Final score</div></div>
+    </div>
+    <button class="wo-btn" id="wo-btn" onclick="closeWarOver()">PLAY AGAIN</button>
+  </div>
+</div>
+
+<script src="fx.js"></script>
 <script>
 /* ─── NATIONS as suits ─── */
 const NATIONS = [
@@ -1240,6 +1314,12 @@ function pickMode(m){
 /* Bot call signs, drawn in order per side. Enough for 3v3's five bots. */
 const BOT_NAMES={a:['Ghost','Wraith'], b:['Reaper','Viper','Talon']};
 function startGame(){
+  /* Each deal gets a new generation. Round timers (tally pause, WW4 blast,
+     pot collect) check it before acting, so a callback left in flight when the
+     player quit mid-round cannot resolve against the next game's board. */
+  G.gen=(G.gen||0)+1;
+  renderSoundBtn();   // reflect the stored preference on the board's toggle
+  warmCardArt(ART_V); // pull the 79 card faces into cache before they're flipped
   const name=document.getElementById('pname').value.trim()||'You';
   // Team size follows the mode: 1v1, 2v2, 3v3 — one deck per player per side.
   const per=Number((G.mode||'1v1')[0])||1;
@@ -1271,6 +1351,16 @@ function leaveSplash(){
   const n=document.getElementById('pname');
   if(n && !('ontouchstart' in window)) n.focus();
 }
+/* The splash was a click-only div, so a keyboard or switch-control user could
+   not get past it and the whole game was unreachable. Enter and Space now
+   start it, matching the role="button" the element advertises. */
+document.addEventListener('DOMContentLoaded',()=>{
+  const s=document.getElementById('splash');
+  if(!s) return;
+  s.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key===' '||e.key==='Spacebar'){ e.preventDefault(); leaveSplash(); }
+  });
+});
 
 /* ── render ── */
 /* ── Mobile board fitter ──
@@ -1330,6 +1420,8 @@ function render(){
   G._lastPotLen=G.pot.length;
 }
 
+/* Feedback layer (haptics + sound) lives in fx.js, shared with multiplayer. */
+
 /* ── juice helpers ── */
 function screenShake(){
   const el=document.querySelector('.screen.active');if(!el)return;
@@ -1361,7 +1453,7 @@ function animateCollect(cb){
     card.classList.add('collect');
     any=true;
   });
-  setTimeout(cb, any?300:0);
+  later(cb, any?300:0);
 }
 
 function renderZones(){
@@ -1478,7 +1570,9 @@ function renderBtn(){
   const btn=document.getElementById('flip-btn');btn.className='flip-btn';
   // While a result panel is up, NEXT ROUND is the only valid action — keeping the
   // flip button live gave the round two competing CTAs, with the wrong one louder.
-  if(G.resultOpen){btn.disabled=true;btn.textContent='—';return;}
+  // Disabled while the result panel owns the round's CTA, but labelled — a bare
+  // "—" across a full-width bar reads as a broken control rather than a paused one.
+  if(G.resultOpen){btn.disabled=true;btn.textContent='ROUND OVER';return;}
   if(G.phase==='flip'){btn.disabled=false;btn.textContent=G.pot.length?`⚔ FLIP — ${G.pot.length} AT STAKE`:'⚔ FLIP CARDS';
     if(!G.pot.length) btn.classList.add('ready-pulse');}
   else if(G.phase==='ww4ante'){btn.disabled=false;btn.className='flip-btn war';btn.textContent='⚡ WW4 — LAY 4 ANTES';}
@@ -1536,9 +1630,11 @@ function openResult(type,title,sub,tableEntries,winTeam,nextFn){
   if(winTeam){
     tr.classList.add(winTeam==='a'?'win-flash':'lose-flash');
     popScore(winTeam, tableEntries?tableEntries.length:0);
+    winTeam==='a'?FX.win():FX.lose();
   } else if(type==='war'||type==='tie'){
     tr.classList.add('war-flash');
     screenShake();
+    FX.war();
   }
 
   G.resultOpen=true; renderBtn();
@@ -1547,27 +1643,36 @@ function openResult(type,title,sub,tableEntries,winTeam,nextFn){
   fitBoard();  // the panel changes height here (PLAY AGAIN is taller than NEXT ROUND)
 }
 
+/* End of a whole game — the full-screen moment, not the inline round panel.
+   winner==='a' is the human's side, so a win is CHAMPIONS and a loss DEFEATED. */
 function openGameOver(winner){
-  const oc=document.getElementById('tr-outcome');
-  oc.className=`tr-outcome ${winner==='a'?'win':'lose'}`;
-  oc.textContent=winner==='a'?'CHAMPIONS':'DEFEATED';
-  const teamEl=document.getElementById('tr-team');
-  teamEl.className=`tr-team ${winner}`;
-  teamEl.textContent=teamLabel(winner);
-  document.getElementById('tr-sub').textContent=`wins the war`;
-  const btn=document.getElementById('tr-btn');
-  btn.textContent='PLAY AGAIN';
-  btn.onclick=()=>{closeResult();showScreen('setup');};
-  const tr=document.getElementById('table-result');
-  tr.classList.remove('win-flash','lose-flash','war-flash');
-  tr.classList.add(winner==='a'?'win-flash':'lose-flash');
+  const won=winner==='a';
+  const wo=document.getElementById('war-over');
+  document.getElementById('wo-particles').innerHTML='';  // never inherit stale confetti (e.g. onto a loss)
+  document.getElementById('wo-eyebrow').textContent=won?'The war is over':'The war is lost';
+  document.getElementById('wo-title').textContent=won?'CHAMPIONS':'DEFEATED';
+  document.getElementById('wo-team').textContent=teamLabel(winner);
+  document.getElementById('wo-rounds').textContent=G.round;
+  document.getElementById('wo-score').textContent=`${G.scores.a}–${G.scores.b}`;
+  wo.className='war-over '+(won?'win':'lose');
+  void wo.offsetWidth;               // reflow so the entrance animations re-fire
+  wo.classList.add('show');
+  if(won && !prefersReducedMotion()) spawnConfetti('wo-particles','confetti');
   screenShake();
-  G.resultOpen=true; renderBtn();
-  document.getElementById('zone-center').classList.add('result-active');
-  document.getElementById('table-result').classList.add('show');
-  fitBoard();  // the panel changes height here (PLAY AGAIN is taller than NEXT ROUND)
+  won?FX.victory():FX.defeat();
+  // Move focus to the primary action so keyboard/switch users land inside the dialog.
+  setTimeout(()=>document.getElementById('wo-btn').focus(),420);
 }
-
+function closeWarOver(){
+  const wo=document.getElementById('war-over');
+  wo.classList.remove('show');
+  wo.className='war-over';
+  document.getElementById('wo-particles').innerHTML='';
+  showScreen('setup');
+}
+function prefersReducedMotion(){
+  return window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+}
 function closeResult(){
   G.resultOpen=false;
   document.getElementById('zone-center').classList.remove('result-active');
@@ -1603,16 +1708,33 @@ function triggerWW4Explosion(cb){
   // Trigger animation
   blast.className='ww4-blast boom';
   screenShake();
-  // After peak, fade out then call callback
+  FX.war();
+  // After peak, fade out then call callback. The blast element is always reset;
+  // only the game-flow callback is dropped if the deal changed underneath it.
+  const gen=G.gen;
   setTimeout(()=>{
     blast.className='ww4-blast fade';
-    setTimeout(()=>{blast.className='ww4-blast';cb();},FLIP_PAUSE);
+    setTimeout(()=>{blast.className='ww4-blast'; if(gen===G.gen) cb();},FLIP_PAUSE);
   },900);
 }
 
 /* ── game logic ── */
+/* setTimeout for round flow: the callback is skipped if the game it belongs to
+   has been quit or replaced (see G.gen in startGame). */
+function later(fn,ms){
+  const gen=G.gen;
+  return setTimeout(()=>{ if(gen===G.gen) fn(); },ms);
+}
+/* Two-tap quit lives in fx.js; here confirming means back to the setup screen.
+   Bumping the generation orphans any round timer still pending. */
+function onQuit(){
+  armQuit(()=>{ G.gen=(G.gen||0)+1; showScreen('setup'); });
+}
+
 function onFlip(){
+  disarmQuit();          // flipping means they chose to keep playing
   closeResult();
+  FX.flip();
   if(G.phase==='flip') doFlip();
   else if(G.phase==='ww4ante') doWW4Ante();
   else if(G.phase==='ww4flip') doWW4Flip();
@@ -1645,8 +1767,17 @@ function showTally(t){
   ea.textContent=a; eb.textContent=b;
   ea.classList.toggle('lead',a>b); eb.classList.toggle('lead',b>a);
   el.classList.add('on');
+  /* The tally adds a row to the centre column, which grows the stacked mobile
+     board. .table-wrap clips rather than scrolls, so without a re-fit the extra
+     height pushed the player labels and the bottom score bar off-screen — most
+     visibly in 2v2, where the board is already two card rows deep. */
+  fitBoard();
 }
-function hideTally(){ const el=document.getElementById('ctr-tally'); if(el) el.classList.remove('on'); }
+function hideTally(){
+  const el=document.getElementById('ctr-tally');
+  if(el) el.classList.remove('on');
+  fitBoard();
+}
 
 function doFlip(){
   G.table=[];let anyOut=false;
@@ -1654,7 +1785,7 @@ function doFlip(){
   if(anyOut){checkGameOver();return;}
   render();
   showTally(G.table);
-  setTimeout(()=>{hideTally();resolveFlip();},FLIP_PAUSE);
+  later(()=>{hideTally();resolveFlip();},FLIP_PAUSE);
 }
 /* ── NATION ABILITIES ──
    Resolution order is explicit and matters:
@@ -1831,7 +1962,7 @@ function doWW4Flip(){
   render();
   const snapshot=[...G.table];
   showTally(snapshot);
-  setTimeout(()=>{
+  later(()=>{
     hideTally();
     if(!snapshot.length) return;
     let aT=0,bT=0;
@@ -1867,7 +1998,7 @@ function doMiniFlip(){
   if(!flipped.length){checkGameOver();return;}
   const snapshot=[...flipped];
   showTally(snapshot);
-  setTimeout(()=>{
+  later(()=>{
     hideTally();
     let best=-1,winner=-1;
     snapshot.forEach(e=>{const v=e.card.joker?100:e.card.v;if(v>best){best=v;winner=e.idx;}});

@@ -1,15 +1,32 @@
 // WW4 service worker — network-first so updates show up immediately while
 // still working offline as a fallback. Bump CACHE_NAME on every deploy that
 // changes cached files, so old/stale caches get purged automatically.
-const CACHE_NAME = 'ww4-cache-v2';
+const CACHE_NAME = 'ww4-cache-v5';
 const SHELL_FILES = [
   './',
   'index.html',
   'ww4-multiplayer.html',
+  'how-to-play.html',
+  'fx.js',
   'manifest.json',
+  // Self-hosted fonts — precached so the typography survives offline, including
+  // an install-then-immediately-offline first run (fonts are the whole identity).
+  'fonts.css',
+  'fonts/bebas-neue-400-latin.woff2',
+  'fonts/bebas-neue-400-latin-ext.woff2',
+  'fonts/barlow-condensed-400-latin.woff2',
+  'fonts/barlow-condensed-400-latin-ext.woff2',
+  'fonts/barlow-condensed-600-latin.woff2',
+  'fonts/barlow-condensed-600-latin-ext.woff2',
+  'fonts/barlow-condensed-700-latin.woff2',
+  'fonts/barlow-condensed-700-latin-ext.woff2',
+  'fonts/barlow-condensed-900-latin.woff2',
+  'fonts/barlow-condensed-900-latin-ext.woff2',
   'icon-192.png',
   'icon-512.png',
-  'icon-180.png'
+  'icon-maskable-192.png',
+  'icon-maskable-512.png',
+  'icon-180.png'          // Apple touch icon — iOS Add to Home Screen
 ];
 
 self.addEventListener('install', (event) => {

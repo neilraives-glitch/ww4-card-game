@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WW4">
+<meta name="theme-color" content="#c0392b">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<title>WW4 — How to Play</title>
+<link href="fonts.css" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --usa-acc:#c8102e; --cn-acc:#de2910; --ru-acc:#4a7cdc; --ir-acc:#239f40;
+  --il-acc:#4a7cdc;  --tw-acc:#fe6060;
+  --cn-txt:#ffd700;
+  --wood:#321808; --wood2:#5a3010; --wood3:#1e0e02;
+  --gold:#c8a84b; --gdim:#7a5820;
+  --red:#c0392b; --cream:#ede6d5;
+  --alpha:#3d9be0; --bravo:#e03d3d;
+  --ink:rgba(237,230,213,.72);
+  --faint:rgba(255,255,255,.4);
+}
+body{font-family:'Barlow Condensed',sans-serif;color:var(--ink);
+  background:
+    radial-gradient(ellipse 120% 70% at 50% 0%, rgba(46,32,18,.5) 0%, transparent 60%),
+    linear-gradient(180deg,#0d1310 0%,#0a0f0c 45%,#060907 100%);
+  background-attachment:fixed;
+  min-height:100vh;min-height:100dvh;line-height:1.5;
+  -webkit-font-smoothing:antialiased;}
+
+/* ── top rail: same lockup as the game board ── */
+.rail{background:linear-gradient(180deg,var(--wood2) 0%,var(--wood) 55%,var(--wood3) 100%);
+  border-bottom:3px solid rgba(0,0,0,.7);box-shadow:0 3px 16px rgba(0,0,0,.6);
+  padding:9px 14px;padding-top:calc(9px + env(safe-area-inset-top));
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  position:sticky;top:0;z-index:10;}
+.rail::before{content:'';position:absolute;inset:0 0 3px 0;
+  background:linear-gradient(180deg,rgba(255,255,255,.07) 0%,transparent 100%);pointer-events:none;}
+.back{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.14em;
+  color:var(--cream);text-decoration:none;position:relative;z-index:1;
+  border:1px solid rgba(200,168,75,.4);padding:5px 12px;background:rgba(0,0,0,.25);
+  transition:background .15s,border-color .15s;white-space:nowrap;}
+.back:hover{background:rgba(200,168,75,.12);border-color:rgba(200,168,75,.75);}
+.rail-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(15px,4.6vw,20px);
+  letter-spacing:.12em;color:var(--cream);text-shadow:2px 2px 0 var(--red);
+  position:relative;z-index:1;line-height:1;}
+.rail-flags{display:flex;gap:4px;position:relative;z-index:1;}
+.rail-flags img{width:15px;height:auto;display:block;opacity:.9;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.6));}
+@media(max-width:520px){.rail-flags{display:none;}}
+
+.wrap{max-width:640px;margin:0 auto;
+  padding:26px 18px calc(56px + env(safe-area-inset-bottom));}
+
+/* ── hero ── */
+.hero{text-align:center;margin-bottom:34px;}
+.hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(38px,12vw,64px);
+  letter-spacing:.03em;line-height:.92;color:var(--cream);
+  text-shadow:0 2px 18px rgba(0,0,0,.9),0 0 42px rgba(192,57,43,.4);}
+.hero .rule{height:2px;width:80px;margin:12px auto 12px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.hero p{font-size:15px;color:var(--faint);max-width:44ch;margin:0 auto;}
+
+section{margin-bottom:34px;}
+h2{font-family:'Bebas Neue',sans-serif;font-size:clamp(20px,5.6vw,26px);
+  letter-spacing:.1em;color:var(--gold);line-height:1;margin-bottom:4px;}
+.sub{font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+  color:rgba(255,255,255,.3);font-weight:700;margin-bottom:14px;}
+
+.panel{background:rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.1);
+  border-top:2px solid var(--gold);padding:16px 16px 14px;}
+.panel p + p{margin-top:10px;}
+.panel strong{color:var(--cream);font-weight:600;}
+
+/* ── beats: a round, in order ── */
+.beats{display:flex;flex-direction:column;gap:0;}
+.beat{display:grid;grid-template-columns:38px 1fr;gap:14px;align-items:start;
+  padding:13px 0;border-bottom:1px solid rgba(255,255,255,.08);}
+.beat:last-child{border-bottom:0;}
+.beat-n{font-family:'Bebas Neue',sans-serif;font-size:24px;line-height:1;
+  color:var(--gold);opacity:.85;text-align:right;}
+.beat-t{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:.08em;
+  color:var(--cream);line-height:1.1;margin-bottom:2px;}
+.beat-d{font-size:14.5px;color:var(--ink);}
+
+/* ── nations ── */
+.nations{display:grid;grid-template-columns:1fr;gap:9px;}
+@media(min-width:560px){.nations{grid-template-columns:1fr 1fr;}}
+.nation{display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:center;
+  background:rgba(0,0,0,.34);border:1px solid rgba(255,255,255,.08);
+  border-left:3px solid var(--c,var(--gold));padding:11px 13px;}
+.nation img{width:44px;height:auto;display:block;
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.7));}
+.n-name{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:.16em;
+  color:var(--faint);line-height:1;}
+.n-ability{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.07em;
+  color:var(--c,var(--gold));line-height:1.1;margin:2px 0 3px;}
+.n-effect{font-size:13.5px;line-height:1.4;color:var(--ink);}
+
+/* ── the signature: resolution order as a cascade ──
+   Order genuinely carries information here — Iron Dome resolving first is what
+   lets it suppress everything below it — so the sequence is the content, not
+   decoration. The connecting spine makes the precedence literal. */
+.order{position:relative;padding-left:30px;}
+.order::before{content:'';position:absolute;left:9px;top:6px;bottom:6px;width:2px;
+  background:linear-gradient(180deg,var(--gold),rgba(200,168,75,.15));}
+.step{position:relative;padding:11px 0;}
+.step::before{content:'';position:absolute;left:-25px;top:17px;
+  width:9px;height:9px;border-radius:50%;background:var(--c,var(--gold));
+  box-shadow:0 0 0 3px #0a0f0c;}
+.step-h{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;}
+.step-n{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:.14em;
+  color:rgba(255,255,255,.28);}
+.step-t{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.08em;
+  color:var(--c,var(--gold));line-height:1;}
+.step-d{font-size:13.5px;margin-top:3px;color:var(--ink);}
+
+/* ── wars ── */
+.wars{display:grid;grid-template-columns:1fr;gap:10px;}
+@media(min-width:560px){.wars{grid-template-columns:1fr 1fr;}}
+.war{background:rgba(100,0,0,.22);border:1px solid rgba(192,57,43,.34);padding:14px;}
+.war-t{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:.09em;
+  color:#ff7755;line-height:1.1;margin-bottom:5px;}
+.war-d{font-size:14px;color:var(--ink);}
+.war-d b{color:var(--cream);font-weight:600;}
+
+/* ── coalition ── */
+.blocs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.bloc{background:rgba(0,0,0,.34);border:1px solid rgba(255,255,255,.1);padding:12px;text-align:center;}
+.bloc-t{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:.2em;line-height:1;margin-bottom:8px;}
+.bloc.west .bloc-t{color:var(--alpha);}
+.bloc.east .bloc-t{color:var(--bravo);}
+.bloc-f{display:flex;gap:6px;justify-content:center;}
+.bloc-f img{width:30px;height:auto;display:block;filter:drop-shadow(0 2px 5px rgba(0,0,0,.7));}
+.mult{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+.mult div{background:rgba(200,168,75,.1);border:1px solid rgba(200,168,75,.35);
+  padding:6px 14px;font-size:13px;}
+.mult b{font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--gold);letter-spacing:.05em;}
+
+.cta{display:block;text-align:center;margin-top:8px;
+  font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.24em;
+  color:var(--cream);text-decoration:none;padding:13px 14px;
+  background:linear-gradient(180deg,#a83224 0%,#8f2419 55%,#731a11 100%);
+  border:1px solid rgba(200,168,75,.55);border-top-color:rgba(214,186,110,.85);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),inset 0 -2px 0 rgba(0,0,0,.32),0 4px 18px rgba(0,0,0,.5);
+  transition:filter .14s,transform .14s;}
+.cta:hover{filter:brightness(1.1);}
+.cta:active{filter:brightness(.92);transform:translateY(1px);}
+
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+</style>
+</head>
+<body>
+
+<div class="rail">
+  <a class="back" href="index.html">← BACK</a>
+  <div class="rail-title">HOW TO PLAY</div>
+  <div class="rail-flags" aria-hidden="true">
+    <img src="art/flag-usa.webp" alt=""><img src="art/flag-il.webp" alt=""><img src="art/flag-tw.webp" alt="">
+    <img src="art/flag-ru.webp" alt=""><img src="art/flag-cn.webp" alt=""><img src="art/flag-ir.webp" alt="">
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="hero">
+    <h1>WORLD WAR 4</h1>
+    <div class="rule" aria-hidden="true"></div>
+    <p>War, with six nations that cheat. Highest card takes the pile — unless
+       the nation on it says otherwise.</p>
+  </div>
+
+  <section>
+    <h2>A round</h2>
+    <div class="sub">Three beats, every time</div>
+    <div class="panel beats">
+      <div class="beat">
+        <div class="beat-n">1</div>
+        <div>
+          <div class="beat-t">Everyone flips</div>
+          <div class="beat-d">One card off the top of each deck, face up, at the same time.</div>
+        </div>
+      </div>
+      <div class="beat">
+        <div class="beat-n">2</div>
+        <div>
+          <div class="beat-t">Totals are compared</div>
+          <div class="beat-d">Each side adds up its cards. 2 is low, Ace is high — then
+            abilities are applied, and they can change the answer.</div>
+        </div>
+      </div>
+      <div class="beat">
+        <div class="beat-n">3</div>
+        <div>
+          <div class="beat-t">The winner takes everything</div>
+          <div class="beat-d">Every card on the table goes to the winning side's pile
+            and counts toward their score.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The six nations</h2>
+    <div class="sub">Each one bends a different rule</div>
+    <div class="nations">
+
+      <div class="nation" style="--c:var(--usa-acc)">
+        <img src="art/flag-usa.webp" alt="United States">
+        <div>
+          <div class="n-name">USA</div>
+          <div class="n-ability">First Strike</div>
+          <div class="n-effect">Wins a same-rank clash outright — but only if the
+            other side isn't holding USA too.</div>
+        </div>
+      </div>
+
+      <div class="nation" style="--c:var(--il-acc)">
+        <img src="art/flag-il.webp" alt="Israel">
+        <div>
+          <div class="n-name">ISRAEL</div>
+          <div class="n-ability">Iron Dome</div>
+          <div class="n-effect">Switches off the <em>enemy's</em> ability for the round.
+            If both sides field Israel, the domes cancel and nobody's ability fires.</div>
+        </div>
+      </div>
+
+      <div class="nation" style="--c:var(--tw-acc)">
+        <img src="art/flag-tw.webp" alt="Taiwan">
+        <div>
+          <div class="n-name">TAIWAN</div>
+          <div class="n-ability">Chokepoint</div>
+          <div class="n-effect">A same-rank clash re-flips instead of escalating.
+            No antes, no cards at risk.</div>
+        </div>
+      </div>
+
+      <div class="nation" style="--c:var(--ru-acc)">
+        <img src="art/flag-ru.webp" alt="Russia">
+        <div>
+          <div class="n-name">RUSSIA</div>
+          <div class="n-ability">Fortify</div>
+          <div class="n-effect">Lays 2 antes into a World War 4 instead of 4 —
+            half the exposure when a tie goes nuclear.</div>
+        </div>
+      </div>
+
+      <div class="nation" style="--c:var(--cn-txt)">
+        <img src="art/flag-cn.webp" alt="China">
+        <div>
+          <div class="n-name">CHINA</div>
+          <div class="n-ability">Mass Mobilization</div>
+          <div class="n-effect">Winning the round also seizes 2 extra cards
+            straight out of the enemy's stock.</div>
+        </div>
+      </div>
+
+      <div class="nation" style="--c:var(--ir-acc)">
+        <img src="art/flag-ir.webp" alt="Iran">
+        <div>
+          <div class="n-name">IRAN</div>
+          <div class="n-ability">Asymmetric</div>
+          <div class="n-effect">A 6 or lower beats a Jack, Queen, King or Ace
+            outright. The small card wins.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <h2>Order of operations</h2>
+    <div class="sub">When abilities collide, this is the order</div>
+    <div class="order">
+      <div class="step" style="--c:var(--il-acc)">
+        <div class="step-h"><span class="step-n">FIRST</span><span class="step-t">Iron Dome</span></div>
+        <div class="step-d">Resolves before anything else, which is what lets it
+          suppress any ability below it.</div>
+      </div>
+      <div class="step" style="--c:var(--tw-acc)">
+        <div class="step-h"><span class="step-n">THEN</span><span class="step-t">Chokepoint</span></div>
+        <div class="step-d">De-escalates a clash before it can become a war.</div>
+      </div>
+      <div class="step" style="--c:var(--usa-acc)">
+        <div class="step-h"><span class="step-n">THEN</span><span class="step-t">First Strike</span></div>
+        <div class="step-d">Settles the clash — if Chokepoint didn't already defuse it.</div>
+      </div>
+      <div class="step" style="--c:var(--ir-acc)">
+        <div class="step-h"><span class="step-n">THEN</span><span class="step-t">Asymmetric</span></div>
+        <div class="step-d">Decided before the totals are compared, so it changes who wins.</div>
+      </div>
+      <div class="step" style="--c:var(--ru-acc)">
+        <div class="step-h"><span class="step-n">THEN</span><span class="step-t">Fortify</span></div>
+        <div class="step-d">Applies once a tie has already sent the round to war.</div>
+      </div>
+      <div class="step" style="--c:var(--cn-txt)">
+        <div class="step-h"><span class="step-n">LAST</span><span class="step-t">Mass Mobilization</span></div>
+        <div class="step-d">Applies after the win is settled, taking its cut of the spoils.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Two kinds of war</h2>
+    <div class="sub">What happens when nobody wins cleanly</div>
+    <div class="wars">
+      <div class="war">
+        <div class="war-t">⚡ World War 4</div>
+        <div class="war-d">Both sides total the <b>same</b> — or both flip a Joker.
+          Everyone lays <b>4 cards face down</b> (2 with Fortify) and flips again.
+          The pot carries over, so the next winner takes all of it.</div>
+      </div>
+      <div class="war">
+        <div class="war-t">⚔ Same-rank clash</div>
+        <div class="war-d">Two opposing cards share a <b>rank</b>. Those players lay
+          <b>2 cards</b> and flip once — that single flip decides the whole pot.
+          Chokepoint or First Strike can end it before it starts.</div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:10px">
+      <p><strong>The Joker is the bomb.</strong> There are two in every deck. A lone
+        Joker beats anything on the table. Two Jokers at once start a World War 4.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Coalition bonus</h2>
+    <div class="sub">Win with an aligned team, score more</div>
+    <div class="blocs">
+      <div class="bloc west">
+        <div class="bloc-t">WEST</div>
+        <div class="bloc-f" aria-hidden="true">
+          <img src="art/flag-usa.webp" alt=""><img src="art/flag-il.webp" alt=""><img src="art/flag-tw.webp" alt="">
+        </div>
+      </div>
+      <div class="bloc east">
+        <div class="bloc-t">EAST</div>
+        <div class="bloc-f" aria-hidden="true">
+          <img src="art/flag-ru.webp" alt=""><img src="art/flag-cn.webp" alt=""><img src="art/flag-ir.webp" alt="">
+        </div>
+      </div>
+    </div>
+    <div class="mult">
+      <div><b>1.25×</b> two aligned cards</div>
+      <div><b>2×</b> three or more</div>
+    </div>
+    <div class="panel" style="margin-top:12px">
+      <p>Win a round in team play with every flipped card from the same bloc and the
+        score is multiplied. <strong>A Joker breaks alignment</strong> — it belongs to
+        nobody. Team modes only.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Winning the war</h2>
+    <div class="panel">
+      <p>Run out of cards and you're out. When <strong>every player on a side</strong>
+        has an empty deck and an empty won pile, the other side takes the war.</p>
+      <p>Out of cards mid-game but still holding a won pile? It gets shuffled and
+        becomes your new deck. You're only finished when both are empty.</p>
+    </div>
+    <a class="cta" href="index.html">⚔ START A GAME</a>
+  </section>
+
+</div>
+</body>
+</html>

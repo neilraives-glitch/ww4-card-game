@@ -18,6 +18,30 @@
   [headers.values]
     Cache-Control = "no-cache"
 
+[[headers]]
+  for = "/how-to-play.html"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+# fx.js and fonts.css carry no version in their filenames, so a cached copy
+# would keep returning players on old code after a deploy. Revalidate both.
+[[headers]]
+  for = "/fx.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/fonts.css"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+# The woff2 files themselves are immutable — a different font would mean a
+# different filename — so they get the long cache.
+[[headers]]
+  for = "/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
 # Card and title artwork is versioned in the URL (ART_V in the game scripts),
 # so a long cache is safe: changing a picture changes its URL. Without this
 # Netlify's default caching left returning players on the old card back.
