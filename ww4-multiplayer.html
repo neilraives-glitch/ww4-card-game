@@ -1307,7 +1307,7 @@ function syncFromFirebase(gs){
 
   // Tally while everyone has flipped and the host has not resolved yet.
   const _getTeam=pid=>G.roomData?.players?.[pid]?.team||'a';
-  const tallyReady = G.table.length && G.table.length===G.playerOrder.length;
+  const tallyReady = G.table.length && G.table.length===inPlay(gs, G.playerOrder).length;
   if(!gs.resultShown && tallyReady){
     showTally(G.table,_getTeam);
   } else {
@@ -1322,10 +1322,8 @@ function syncFromFirebase(gs){
      completion test and the function called both differ by phase. */
   if(isHost && !gs.resultShown && !G._resolving){
     const isMini = gs.phase==='mini_flip';
-    const involved = isMini
-      ? [...new Set((gs.miniPairs||[]).flat())]
-      : G.playerOrder;
     const table = gs.table || {};
+    const involved = inPlay(gs, isMini ? [...new Set((gs.miniPairs||[]).flat())] : G.playerOrder);
     const done = involved.length && involved.every(pid=>table[pid]);
     if(done && (isMini || gs.phase==='flip' || gs.phase==='ww4flip')){
       G._resolving = true;
@@ -1342,7 +1340,14 @@ function syncFromFirebase(gs){
   }
 
   // Show result if one is pending
-  if(gs.resultShown && !document.getElementById('table-result').classList.contains('show')){
+  /* Keyed so the snapshots that arrive while the 1.5s blast plays neither
+     restart it nor, once the game has moved on, open a stale panel. A leader
+     tapping LAY ANTES mid-blast moved the round to the flip phase; the late
+     openResult then disabled every flip button and the game hung. */
+  const resultKey = gs.resultShown ? JSON.stringify(gs.resultShown) : null;
+  if(gs.resultShown && !document.getElementById('table-result').classList.contains('show')
+     && G._pendingResult !== resultKey){
+    G._pendingResult = resultKey;
     const r = gs.resultShown;
     const gain = r.winTeam ? Math.max(0,(G.scores[r.winTeam]||0)-(prevScores[r.winTeam]||0)) : 0;
     /* The host writes the outcome from team A's point of view (`winTeam==='a'
@@ -1357,6 +1362,8 @@ function syncFromFirebase(gs){
       if(r.title==='CHAMPIONS'||r.title==='DEFEATED') rTitle = iWon ? 'CHAMPIONS' : 'DEFEATED';
     }
     const land=()=>{
+      if(G._pendingResult !== resultKey) return;   // superseded during the blast
+      G._pendingResult = null;
       openResult(rType, rTitle, r.sub, r.winTeam, gain);
       if(iWon===true) FX.win(); else if(iWon===false) FX.lose();
     };
@@ -1366,17 +1373,18 @@ function syncFromFirebase(gs){
       land();
     }
   } else if(!gs.resultShown){
+    G._pendingResult = null;
     closeResult();
   }
 
   // Waiting overlay: show if we've flipped and waiting for others
   const myFlipped = gs.table?.[myId];
-  const allFlipped = G.playerOrder.every(pid=>gs.table?.[pid]);
+  const allFlipped = inPlay(gs, G.playerOrder).every(pid=>gs.table?.[pid]);
   const waitOverlay = document.getElementById('waiting-overlay');
   if(myFlipped && !allFlipped && G.phase==='flip'){
     waitOverlay.classList.add('show');
     const flippedCount = Object.keys(gs.table||{}).length;
-    document.getElementById('waiting-txt').textContent=`${flippedCount}/${G.playerOrder.length} flipped...`;
+    document.getElementById('waiting-txt').textContent=`${flippedCount}/${inPlay(gs, G.playerOrder).length} flipped...`;
   } else {
     waitOverlay.classList.remove('show');
   }
@@ -1436,6 +1444,14 @@ window.onFlip = async function(){
     renderBtn();   // hand the button back so the action can be retried
   }
 };
+
+/* Players still in this flip: anyone who has already put a card down, or who
+   holds cards to put down. A player emptied by the antes, or knocked out while
+   teammates fight on, sits out; waiting on their flip hung the table for good. */
+function inPlay(gs, pids){
+  const t = gs.table || {};
+  return pids.filter(pid => t[pid] || gs.decks?.[pid]?.length || gs.won?.[pid]?.length);
+}
 
 // Am I the "leader" for host-only actions?
 function isActionLeader(){
@@ -1992,6 +2008,11 @@ function renderBtn(){
   const phase=G.phase||'flip';
   const myFlipped=G.table?.some(e=>e.pid===myId);
   const involved=G.miniPairs?.flat()?.includes(myId);
+  const me=G.players?.find(p=>p.id===myId);
+  const myOut=!myFlipped && me && !me.deck?.length && !me.won?.length;
+  if(myOut && (phase==='flip'||phase==='ww4flip'||(phase==='mini_flip'&&involved))){
+    btn.disabled=true; btn.textContent='☠ OUT OF CARDS · SPECTATING'; return;
+  }
 
   if(phase==='flip'){
     btn.disabled=myFlipped;
