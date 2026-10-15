@@ -1780,9 +1780,13 @@ function hideTally(){
 }
 
 function doFlip(){
-  G.table=[];let anyOut=false;
-  G.players.forEach((p,idx)=>{const c=drawTop(p);if(!c){anyOut=true;return;}G.table.push({idx,card:c});});
-  if(anyOut){checkGameOver();return;}
+  /* A player with no cards left sits out while a teammate still has some.
+     Bailing out whenever anyone was empty froze 2v2/3v3 for good: the round
+     never ran and the game never ended. */
+  G.table=[];
+  G.players.forEach((p,idx)=>{const c=drawTop(p);if(c)G.table.push({idx,card:c});});
+  const sides=new Set(G.table.map(e=>G.players[e.idx].team));
+  if(sides.size<2){checkGameOver();return;}   // a whole side is out: game over
   render();
   showTally(G.table);
   later(()=>{hideTally();resolveFlip();},FLIP_PAUSE);
@@ -1964,7 +1968,7 @@ function doWW4Flip(){
   showTally(snapshot);
   later(()=>{
     hideTally();
-    if(!snapshot.length) return;
+    if(!snapshot.length){checkGameOver();return;}
     let aT=0,bT=0;
     snapshot.forEach(e=>{if(G.players[e.idx].team==='a') aT+=e.card.joker?100:e.card.v; else bT+=e.card.joker?100:e.card.v;});
     if(aT===bT){
